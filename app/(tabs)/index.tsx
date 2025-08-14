@@ -1,8 +1,9 @@
-import ClockButton from '@/components/ClockButton';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import WelcomeSection from '@/components/common/WelcomeSection';
+import TimeTrackingCard from '@/components/cards/TimeTrackingCard';
+import ShiftCard, { Shift } from '@/components/cards/ShiftCard';
+import VacationCard from '@/components/cards/VacationCard';
 import { supabase } from '@/supabase';
-import { FontAwesome } from '@expo/vector-icons';
-import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -11,15 +12,6 @@ interface Profile {
   username?: string;
   first_name?: string;
   last_name?: string;
-}
-
-interface Shift {
-  id: string;
-  date: string;
-  start_time: string;
-  end_time?: string;
-  role?: string;
-  urgent?: boolean;
 }
 
 export default function HomeScreen() {
@@ -109,30 +101,13 @@ export default function HomeScreen() {
       <View style={styles.container}>
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Welcome Section */}
-        <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeTitle}>Welcome back, {getDisplayName()}!</Text>
-          <Text style={styles.welcomeSubtitle}>Ready to manage your shifts?</Text>
-        </View>
+        <WelcomeSection displayName={getDisplayName()} />
 
         {/* Time Tracking Section */}
-        <View style={styles.clockSection}>
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Time Tracking</Text>
-              <View style={styles.statusContainer}>
-                <FontAwesome name="clock-o" size={14} color="#6B7280" style={styles.statusIcon} />
-                <Text style={styles.statusText}>
-                  {isClockedIn ? 'Clocked in' : 'Not clocked in'}
-                </Text>
-              </View>
-            </View>
-
-            <ClockButton
-              isClockedIn={isClockedIn}
-              onStatusChange={loadClockStatus}
-            />
-          </View>
-        </View>
+        <TimeTrackingCard
+          isClockedIn={isClockedIn}
+          onStatusChange={loadClockStatus}
+        />
 
         {/* Open Shifts Section */}
         <View style={styles.openShiftsSection}>
@@ -168,16 +143,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.vacationCard}>
-            <View style={styles.vacationContent}>
-              <FontAwesome name="umbrella" size={48} color="#D1D5DB" style={styles.vacationIcon} />
-              <Text style={styles.vacationTitle}>No upcoming vacations</Text>
-              <Text style={styles.vacationSubtitle}>Plan your time off and submit vacation requests</Text>
-              <TouchableOpacity style={styles.vacationButton}>
-                <Text style={styles.vacationButtonText}>Request Vacation</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          <VacationCard />
         </View>
         </ScrollView>
       </View>
@@ -197,59 +163,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 24,
     paddingBottom: 64, // Space for bottom tab navigation
-  },
-  welcomeSection: {
-    marginBottom: 32,
-  },
-  welcomeTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#000000',
-    marginBottom: 8,
-  },
-  welcomeSubtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  clockSection: {
-    marginBottom: 32,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statusIcon: {
-    marginRight: 4,
-  },
-  statusText: {
-    fontSize: 14,
-    color: '#6B7280',
   },
   openShiftsSection: {
     marginBottom: 32,
@@ -282,72 +195,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: '#000000',
   },
-  shiftCard: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  shiftCardContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  shiftInfo: {
-    flex: 1,
-  },
-  shiftHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    gap: 8,
-  },
-  shiftDate: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#000000',
-  },
-  urgentBadge: {
-    backgroundColor: '#FBBF24',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  urgentText: {
-    fontSize: 12,
-    color: '#FFFFFF',
-    fontWeight: '500',
-  },
-  shiftTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
-    marginBottom: 4,
-  },
-  shiftTime: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  pickUpButton: {
-    backgroundColor: '#000000',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  pickUpButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#FFFFFF',
-  },
   emptyShifts: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
@@ -370,93 +217,7 @@ const styles = StyleSheet.create({
   vacationsSection: {
     marginBottom: 16,
   },
-  vacationCard: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  vacationContent: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  vacationIcon: {
-    marginBottom: 16,
-  },
-  vacationTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  vacationSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  vacationButton: {
-    backgroundColor: '#000000',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  vacationButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
-  },
 });
-
-function ShiftCard({ shift }: { shift: Shift }) {
-  const shiftDate = parseISO(String(shift.date));
-  let dateLabel = format(shiftDate, 'MMM d');
-  if (isToday(shiftDate)) {
-    dateLabel = 'Today';
-  } else if (isTomorrow(shiftDate)) {
-    dateLabel = 'Tomorrow';
-  }
-
-  const start = format(parseISO(`2000-01-01T${shift.start_time}`), 'h:mm a');
-  const end = shift.end_time
-    ? format(parseISO(`2000-01-01T${shift.end_time}`), 'h:mm a')
-    : '';
-
-  return (
-    <View style={styles.shiftCard}>
-      <View style={styles.shiftCardContent}>
-        <View style={styles.shiftInfo}>
-          <View style={styles.shiftHeader}>
-            <Text style={styles.shiftDate}>{dateLabel}</Text>
-            {shift.urgent && (
-              <View style={styles.urgentBadge}>
-                <Text style={styles.urgentText}>Urgent</Text>
-              </View>
-            )}
-          </View>
-          <Text style={styles.shiftTitle}>{shift.role || 'Shift'}</Text>
-          <Text style={styles.shiftTime}>
-            {start}
-            {end ? ` - ${end}` : ''}
-          </Text>
-        </View>
-        <TouchableOpacity style={styles.pickUpButton}>
-          <Text style={styles.pickUpButtonText}>Pick Up</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-}
 
 function EmptyShifts() {
   return (
