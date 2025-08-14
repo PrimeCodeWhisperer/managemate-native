@@ -3,8 +3,9 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { supabase } from '@/supabase';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function LoginScreen() {
   const scheme = useColorScheme() ?? 'light';
@@ -12,6 +13,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const signIn = async () => {
     try {
@@ -25,47 +27,316 @@ export default function LoginScreen() {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'your-app-scheme://auth/callback', // Replace with your app's URL scheme
+        },
+      });
+      if (error) throw error;
+    } catch (e: any) {
+      Alert.alert('Google Sign In', e.message ?? 'Google sign in is not configured yet');
+    }
+  };
+
+  const handleForgotPassword = () => {
+    Alert.alert('Forgot Password', 'Password reset functionality will be available soon');
+  };
+
+  const handleSignUp = () => {
+    Alert.alert('Sign Up', 'Registration functionality will be available soon');
+  };
+
   return (
-    <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', android: undefined })} style={{ flex: 1 }}>
-      <ThemedView style={[styles.container, { backgroundColor: theme.background }]}> 
-        <ThemedText type="title" style={{ marginBottom: 16 ,textAlign:"center"}}>ManageMate</ThemedText>
+    <KeyboardAvoidingView 
+      behavior={Platform.select({ ios: 'padding', android: 'height' })} 
+      style={styles.keyboardView}
+    >
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
+          
+          {/* Logo Section */}
+          <View style={styles.logoSection}>
+            <View style={[styles.logoIcon, { backgroundColor: theme.primary }]}>
+              <Ionicons name="calendar" size={24} color={theme.primaryForeground} />
+            </View>
+            <ThemedText style={styles.appTitle}>Managemate</ThemedText>
+            <Text style={[styles.appSubtitle, { color: theme.icon }]}>
+              Smart Shift Scheduling
+            </Text>
+          </View>
 
-        <View style={styles.field}>
-          <ThemedText>Email</ThemedText>
-          <TextInput
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            placeholder="you@example.com"
-            placeholderTextColor={scheme === 'dark' ? '#9CA3AF' : '#6B7280'}
-            style={[styles.input, { borderColor: theme.secondary, color: theme.foreground }]}
-          />
-        </View>
+          {/* Login Form */}
+          <View style={styles.loginForm}>
+            
+            {/* Welcome Header */}
+            <View style={styles.welcomeHeader}>
+              <ThemedText style={styles.welcomeTitle}>Welcome Back</ThemedText>
+              <Text style={[styles.welcomeSubtitle, { color: theme.icon }]}>
+                Sign in to your account
+              </Text>
+            </View>
 
-        <View style={styles.field}>
-          <ThemedText>Password</ThemedText>
-          <TextInput
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            placeholder="••••••••"
-            placeholderTextColor={scheme === 'dark' ? '#9CA3AF' : '#6B7280'}
-            style={[styles.input, { borderColor: theme.secondary, color: theme.foreground }]}
-          />
-        </View>
+            {/* Input Fields */}
+            <View style={styles.inputFields}>
+              
+              {/* Email Field */}
+              <View style={styles.fieldContainer}>
+                <Text style={[styles.fieldLabel, { color: '#374151' }]}>Email</Text>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    placeholder="Enter your email"
+                    placeholderTextColor="#9CA3AF"
+                    style={[styles.input, { color: theme.foreground }]}
+                  />
+                  <Ionicons name="person-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                </View>
+              </View>
 
-        <Pressable disabled={loading} onPress={signIn} style={[styles.button, { backgroundColor: theme.primary }]}>
-          <ThemedText style={{ color: theme.primaryForeground, textAlign: 'center', fontWeight: '600' }}>{loading ? 'Signing in…' : 'Sign In'}</ThemedText>
-        </Pressable>
-      </ThemedView>
+              {/* Password Field */}
+              <View style={styles.fieldContainer}>
+                <Text style={[styles.fieldLabel, { color: '#374151' }]}>Password</Text>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    placeholder="Enter your password"
+                    placeholderTextColor="#9CA3AF"
+                    style={[styles.input, { color: theme.foreground }]}
+                  />
+                  <TouchableOpacity 
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.inputIcon}
+                  >
+                    <Ionicons 
+                      name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                      size={20} 
+                      color="#9CA3AF" 
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+
+            {/* Forgot Password */}
+            <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotPassword}>
+              <Text style={[styles.forgotPasswordText, { color: theme.foreground }]}>
+                Forgot Password?
+              </Text>
+            </TouchableOpacity>
+
+            {/* Sign In Button */}
+            <Pressable 
+              disabled={loading} 
+              onPress={signIn} 
+              style={[
+                styles.signInButton, 
+                { backgroundColor: theme.primary },
+                loading && styles.disabledButton
+              ]}
+            >
+              <Text style={[styles.signInButtonText, { color: theme.primaryForeground }]}>
+                {loading ? 'Signing in…' : 'Sign In'}
+              </Text>
+            </Pressable>
+
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={[styles.dividerText, { color: theme.icon }]}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Google Sign In */}
+            <TouchableOpacity 
+              onPress={signInWithGoogle}
+              style={[styles.googleButton, { borderColor: theme.secondary }]}
+            >
+              <Ionicons name="logo-google" size={20} color="#4285F4" />
+              <Text style={[styles.googleButtonText, { color: theme.foreground }]}>
+                Continue with Google
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Sign Up Link */}
+          <View style={styles.signUpSection}>
+            <Text style={[styles.signUpText, { color: theme.icon }]}>
+              Don't have an account?{' '}
+              <Text 
+                style={[styles.signUpLink, { color: theme.foreground }]}
+                onPress={handleSignUp}
+              >
+                Sign Up
+              </Text>
+            </Text>
+          </View>
+
+        </ThemedView>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: 'center' },
-  field: { marginBottom: 12 },
-  input: { borderWidth: 1, borderRadius: 10, padding: 12, marginTop: 6 },
-  button: { marginTop: 8, padding: 14, borderRadius: 12 },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  container: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+    minHeight: '100%',
+  },
+  logoSection: {
+    alignItems: 'center',
+    paddingTop: 48,
+    paddingBottom: 48,
+  },
+  logoIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  appTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  appSubtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  loginForm: {
+    flex: 1,
+    gap: 24,
+  },
+  welcomeHeader: {
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    marginBottom: 32,
+  },
+  inputFields: {
+    gap: 16,
+  },
+  fieldContainer: {
+    gap: 8,
+  },
+  fieldLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  inputWrapper: {
+    position: 'relative',
+  },
+  input: {
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    paddingRight: 48,
+    fontSize: 16,
+  },
+  inputIcon: {
+    position: 'absolute',
+    right: 16,
+    top: '50%',
+    transform: [{ translateY: -10 }],
+  },
+  forgotPassword: {
+    alignSelf: 'flex-end',
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  signInButton: {
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  signInButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  dividerText: {
+    paddingHorizontal: 16,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    backgroundColor: '#F9FAFB',
+    gap: 12,
+  },
+  googleButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  signUpSection: {
+    alignItems: 'center',
+    paddingTop: 32,
+    paddingBottom: 24,
+  },
+  signUpText: {
+    fontSize: 14,
+  },
+  signUpLink: {
+    fontWeight: '600',
+  },
 });
