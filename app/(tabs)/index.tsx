@@ -1,75 +1,106 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { supabase } from '@/supabase';
+import { format, isToday, parseISO } from 'date-fns';
+import React, { useEffect, useState } from 'react';
+import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+
+interface Shift {
+  id: string;
+  date: string;      // YYYY-MM-DD
+  start_time: string; // e.g. "09:00"
+}
 
 export default function HomeScreen() {
+  const scheme = useColorScheme() ?? 'light';
+  const theme = Colors[scheme];
+  const [email, setEmail] = useState<string | null>(null);
+  const [todayShifts, setTodayShifts] = useState<Shift[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const load = async () => {
+    try {
+      setLoading(true);
+      const { data: userRes, error: userErr } = await supabase.auth.getUser();
+      if (userErr) throw userErr;
+      const user = userRes.user;
+      setEmail(user?.email ?? null);
+
+      const query = supabase
+        .from('upcoming_shifts')
+        .select('*')
+        .order('date', { ascending: true })
+        .order('start_time', { ascending: true });
+      const { data, error } = user?.id ? await query.eq('user_id', user.id) : await query;
+      if (error) throw error;
+
+      const today = (data ?? []).filter((s: any) => isToday(parseISO(String(s.date))));
+      setTodayShifts(today as Shift[]);
+    } catch (e: any) {
+      Alert.alert('Error', e.message ?? 'Failed to load');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const renderShift = ({ item }: { item: Shift }) => (
+    <View style={[styles.card, { backgroundColor: theme.secondary }]}> 
+      <ThemedText type="subtitle">Shift</ThemedText>
+      <ThemedText>
+        {format(parseISO(item.date), 'PP')} · {item.start_time}
+      </ThemedText>
+    </View>
+  );
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <ThemedView style={[styles.container, { backgroundColor: theme.background }]}> 
+      <ThemedText type="title">Welcome {email ?? ''}</ThemedText>
+
+      <ThemedText type="subtitle" style={styles.sectionTitle}>Today&apos;s Shifts</ThemedText>
+      <FlatList
+        data={todayShifts}
+        keyExtractor={(i) => String(i.id)}
+        renderItem={renderShift}
+        ListEmptyComponent={<ThemedText>No shifts today.</ThemedText>}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
+        contentContainerStyle={{ gap: 12 }}
+      />
+
+      <View style={styles.spacer} />
+
+      <ThemedText type="subtitle" style={styles.sectionTitle}>Open Shifts</ThemedText>
+      <View style={[styles.placeholder, { borderColor: theme.secondary }]}>
+        <ThemedText>Coming soon</ThemedText>
+      </View>
+
+      <ThemedText type="subtitle" style={styles.sectionTitle}>Vacations</ThemedText>
+      <View style={[styles.placeholder, { borderColor: theme.secondary }]}>
+        <ThemedText>Coming soon</ThemedText>
+      </View>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: { flex: 1, padding: 16, gap: 12 },
+  sectionTitle: { marginTop: 8 },
+  card: {
+    borderRadius: 12,
+    padding: 12,
+  },
+  placeholder: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 16,
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
+    minHeight: 80,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+  spacer: { height: 16 },
 });
