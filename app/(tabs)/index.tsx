@@ -2,28 +2,76 @@ import { supabase } from '@/supabase';
 import { FontAwesome } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { format, isToday, isTomorrow, parseISO } from 'date-fns';
+
+interface Profile {
+  id: string;
+  username?: string;
+  first_name?: string;
+  last_name?: string;
+}
+
+interface Shift {
+  id: string;
+  date: string;
+  start_time: string;
+  end_time?: string;
+  role?: string;
+  urgent?: boolean;
+}
 
 export default function HomeScreen() {
-  const [username, setUsername] = useState<string | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isClockedIn, setIsClockedIn] = useState(false);
+  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [loadingShifts, setLoadingShifts] = useState(true);
 
-  const load = async () => {
+  const loadProfile = async () => {
     try {
       const { data: userRes, error: userErr } = await supabase.auth.getUser();
       if (userErr) throw userErr;
       const user = userRes.user;
-      const { data: profileRes, error: profileErr } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      const { data: profileRes, error: profileErr } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
       if (profileErr) throw profileErr;
-      const profile = profileRes;
-      setUsername(profile.username)
+      setProfile(profileRes);
     } catch (e: any) {
       Alert.alert('Error', e.message ?? 'Failed to load');
     }
   };
 
+  const loadShifts = async () => {
+    try {
+      const { data, error } = await supabase.from('upcoming_shifts').select('*');
+      if (error) throw error;
+      setShifts((data ?? []) as Shift[]);
+    } catch (e: any) {
+      Alert.alert('Error', e.message ?? 'Failed to load shifts');
+    } finally {
+      setLoadingShifts(false);
+    }
+  };
+
   useEffect(() => {
-    load();
+    loadProfile();
+    loadShifts();
   }, []);
+
+  const getDisplayName = () => {
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name} ${profile.last_name}`;
+    }
+    if (profile?.first_name) {
+      return profile.first_name;
+    }
+    if (profile?.username) {
+      return profile.username;
+    }
+    return 'User';
+  };
 
   const handleClockIn = () => {
     if (!isClockedIn) {
@@ -42,7 +90,7 @@ export default function HomeScreen() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeTitle}>Welcome back, {username || 'Sarah'}!</Text>
+          <Text style={styles.welcomeTitle}>Welcome back, {getDisplayName()}!</Text>
           <Text style={styles.welcomeSubtitle}>Ready to manage your shifts?</Text>
         </View>
 
@@ -117,56 +165,13 @@ export default function HomeScreen() {
           </View>
           
           <View style={styles.shiftsContainer}>
-            {/* Shift Card 1 */}
-            <View style={styles.shiftCard}>
-              <View style={styles.shiftCardContent}>
-                <View style={styles.shiftInfo}>
-                  <View style={styles.shiftHeader}>
-                    <Text style={styles.shiftDate}>Today</Text>
-                    <View style={styles.urgentBadge}>
-                      <Text style={styles.urgentText}>Urgent</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.shiftTitle}>Morning Shift</Text>
-                  <Text style={styles.shiftTime}>8:00 AM - 4:00 PM</Text>
-                </View>
-                <TouchableOpacity style={styles.pickUpButton}>
-                  <Text style={styles.pickUpButtonText}>Pick Up</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Shift Card 2 */}
-            <View style={styles.shiftCard}>
-              <View style={styles.shiftCardContent}>
-                <View style={styles.shiftInfo}>
-                  <View style={styles.shiftHeader}>
-                    <Text style={styles.shiftDate}>Tomorrow</Text>
-                  </View>
-                  <Text style={styles.shiftTitle}>Evening Shift</Text>
-                  <Text style={styles.shiftTime}>4:00 PM - 12:00 AM</Text>
-                </View>
-                <TouchableOpacity style={styles.pickUpButton}>
-                  <Text style={styles.pickUpButtonText}>Pick Up</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Shift Card 3 */}
-            <View style={styles.shiftCard}>
-              <View style={styles.shiftCardContent}>
-                <View style={styles.shiftInfo}>
-                  <View style={styles.shiftHeader}>
-                    <Text style={styles.shiftDate}>May 18</Text>
-                  </View>
-                  <Text style={styles.shiftTitle}>Weekend Shift</Text>
-                  <Text style={styles.shiftTime}>10:00 AM - 6:00 PM</Text>
-                </View>
-                <TouchableOpacity style={styles.pickUpButton}>
-                  <Text style={styles.pickUpButtonText}>Pick Up</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            {loadingShifts ? (
+              <Text>Loading...</Text>
+            ) : shifts.length > 0 ? (
+              shifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)
+            ) : (
+              <EmptyShifts />
+            )}
           </View>
         </View>
 
@@ -383,6 +388,25 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#FFFFFF',
   },
+  emptyShifts: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    padding: 24,
+    alignItems: 'center',
+  },
+  emptyShiftsTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  emptyShiftsSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
   vacationsSection: {
     marginBottom: 16,
   },
@@ -433,3 +457,54 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 });
+
+function ShiftCard({ shift }: { shift: Shift }) {
+  const shiftDate = parseISO(String(shift.date));
+  let dateLabel = format(shiftDate, 'MMM d');
+  if (isToday(shiftDate)) {
+    dateLabel = 'Today';
+  } else if (isTomorrow(shiftDate)) {
+    dateLabel = 'Tomorrow';
+  }
+
+  const start = format(parseISO(`2000-01-01T${shift.start_time}`), 'h:mm a');
+  const end = shift.end_time
+    ? format(parseISO(`2000-01-01T${shift.end_time}`), 'h:mm a')
+    : '';
+
+  return (
+    <View style={styles.shiftCard}>
+      <View style={styles.shiftCardContent}>
+        <View style={styles.shiftInfo}>
+          <View style={styles.shiftHeader}>
+            <Text style={styles.shiftDate}>{dateLabel}</Text>
+            {shift.urgent && (
+              <View style={styles.urgentBadge}>
+                <Text style={styles.urgentText}>Urgent</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.shiftTitle}>{shift.role || 'Shift'}</Text>
+          <Text style={styles.shiftTime}>
+            {start}
+            {end ? ` - ${end}` : ''}
+          </Text>
+        </View>
+        <TouchableOpacity style={styles.pickUpButton}>
+          <Text style={styles.pickUpButtonText}>Pick Up</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+function EmptyShifts() {
+  return (
+    <View style={styles.emptyShifts}>
+      <Text style={styles.emptyShiftsTitle}>No open shifts</Text>
+      <Text style={styles.emptyShiftsSubtitle}>
+        {"You're all caught up for now"}
+      </Text>
+    </View>
+  );
+}
