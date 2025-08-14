@@ -6,7 +6,8 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Button, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Button, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ProfileSkeleton from '@/components/common/ProfileSkeleton';
 
 interface Profile {
   id: string;
@@ -178,18 +179,6 @@ export default function OthersScreen() {
     return { uri: 'https://via.placeholder.com/100/E5E7EB/9CA3AF?text=U' };
   };
 
-  if (loading) {
-    return (
-      <ErrorBoundary>
-        <ThemedView style={styles.container}>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator />
-          </View>
-        </ThemedView>
-      </ErrorBoundary>
-    );
-  }
-
   if (error) {
     return (
       <ErrorBoundary>
@@ -214,24 +203,28 @@ export default function OthersScreen() {
         contentContainerStyle={styles.mainContentContainer}
       >
         {/* Profile Section */}
-        <TouchableOpacity 
-          style={[styles.profileSection, { backgroundColor: theme.secondary }]}
-          onPress={() => Alert.alert('Coming Soon', 'Profile editing will be available soon')}
-        >
-          <Image 
-            source={getAvatarSource()}
-            style={styles.avatar}
-          />
-          <View style={styles.profileInfo}>
-            <ThemedText style={styles.profileName}>
-              {getDisplayName()}
-            </ThemedText>
-            <Text style={[styles.profileId, { color: theme.icon }]}>
-              Employee ID: {getEmployeeId()}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={16} color={theme.icon} />
-        </TouchableOpacity>
+        {loading ? (
+          <ProfileSkeleton />
+        ) : (
+          <TouchableOpacity
+            style={[styles.profileSection, { backgroundColor: theme.secondary }]}
+            onPress={() => Alert.alert('Coming Soon', 'Profile editing will be available soon')}
+          >
+            <Image
+              source={getAvatarSource()}
+              style={styles.avatar}
+            />
+            <View style={styles.profileInfo}>
+              <ThemedText style={styles.profileName}>
+                {getDisplayName()}
+              </ThemedText>
+              <Text style={[styles.profileId, { color: theme.icon }]}>
+                Employee ID: {getEmployeeId()}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={theme.icon} />
+          </TouchableOpacity>
+        )}
 
         {/* Menu Items */}
         <View style={styles.menuItems}>
@@ -298,11 +291,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 8,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   errorContainer: {
     flex: 1,
