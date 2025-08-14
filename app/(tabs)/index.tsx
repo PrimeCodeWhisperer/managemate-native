@@ -1,56 +1,24 @@
 import ErrorBoundary from '@/components/ErrorBoundary';
 import WelcomeSection from '@/components/common/WelcomeSection';
 import TimeTrackingCard from '@/components/cards/TimeTrackingCard';
-import ShiftCard, { Shift } from '@/components/cards/ShiftCard';
+import ShiftCard from '@/components/cards/ShiftCard';
 import VacationCard from '@/components/cards/VacationCard';
 import { supabase } from '@/supabase';
-import React, { useEffect, useState } from 'react';
+import { useProfile } from '@/hooks/useProfile';
+import { useShifts } from '@/hooks/useShifts';
+import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-interface Profile {
-  id: string;
-  username?: string;
-  first_name?: string;
-  last_name?: string;
-}
-
 export default function HomeScreen() {
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [isClockedIn, setIsClockedIn] = useState(false);
-  const [shifts, setShifts] = useState<Shift[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [pastShiftId, setPastShiftId]=useState();
-  const loadProfile = async () => {
-    try {
-      const { data: userRes, error: userErr } = await supabase.auth.getUser();
-      if (userErr) throw userErr;
-      const user = userRes.user;
-      const { data: profileRes, error: profileErr } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      if (profileErr) throw profileErr;
-      setProfile(profileRes);
-    } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Failed to load');
-    }
-  };
-
-  const loadShifts = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error } = await supabase.from('upcoming_shifts').select('*');
-      if (error) throw error;
-      setShifts((data ?? []) as Shift[]);
-    } catch (e: any) {
-      setError(e.message ?? 'Failed to load shifts');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [pastShiftId, setPastShiftId] = useState();
+  const { profile } = useProfile();
+  const {
+    shifts,
+    loading,
+    error,
+    refresh,
+  } = useShifts('upcoming');
 
   const loadClockStatus = async () => {
     try {
@@ -77,11 +45,6 @@ export default function HomeScreen() {
       Alert.alert('Error', e.message ?? 'Failed to load status');
     }
   };
-
-  useEffect(() => {
-    loadProfile();
-    loadShifts();
-  }, []);
 
   const getDisplayName = () => {
     if (profile?.first_name && profile?.last_name) {
@@ -119,12 +82,12 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.shiftsContainer}>
-            {loading ? (
+          {loading ? (
               <ActivityIndicator />
             ) : error ? (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>
-                <Button title="Retry" onPress={loadShifts} />
+                <Button title="Retry" onPress={refresh} />
               </View>
             ) : shifts.length > 0 ? (
               shifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)

@@ -5,19 +5,10 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Alert, Button, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ProfileSkeleton from '@/components/common/ProfileSkeleton';
-
-interface Profile {
-  id: string;
-  username?: string;
-  first_name?: string;
-  last_name?: string;
-  avatar_url?: string;
-  email?: string;
-  role?: string;
-}
+import { useProfile } from '@/hooks/useProfile';
 
 interface MenuItem {
   id: string;
@@ -31,37 +22,7 @@ interface MenuItem {
 export default function OthersScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  const loadProfile = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data: userRes, error: userErr } = await supabase.auth.getUser();
-      if (userErr) throw userErr;
-      const user = userRes.user;
-      if (!user) throw new Error('Not authenticated');
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      if (error) throw error;
-      setProfile(data);
-    } catch (e: any) {
-      setError(e.message ?? 'Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { profile, loading, error, refresh } = useProfile();
 
   const handleSignOut = async () => {
     Alert.alert(
@@ -185,7 +146,7 @@ export default function OthersScreen() {
         <ThemedView style={styles.container}>
           <View style={styles.errorContainer}>
             <ThemedText>{error}</ThemedText>
-            <Button title="Retry" onPress={loadProfile} />
+            <Button title="Retry" onPress={refresh} />
           </View>
         </ThemedView>
       </ErrorBoundary>

@@ -9,6 +9,14 @@ export interface DayAvailability {
   endTime?: string;
 }
 
+interface AvailabilityCacheEntry {
+  map: Record<string, boolean>;
+  timeMap: Record<string, DayAvailability>;
+  rowId: number | null;
+}
+
+const availabilityCache: Record<string, AvailabilityCacheEntry | undefined> = {};
+
 export function useAvailability() {
   const [weekStart, setWeekStart] = useState<Date>(
     startOfWeek(new Date(), { weekStartsOn: 1 })
@@ -43,7 +51,6 @@ export function useAvailability() {
         .eq('week_start', weekKey)
         .maybeSingle();
       if (error && error.code !== 'PGRST116') throw error;
-      setRowId((data?.id as number) ?? null);
 
       const availability = (data?.availability as Record<string, boolean | DayAvailability>) ?? {};
       const newMap: Record<string, boolean> = {};
@@ -59,8 +66,15 @@ export function useAvailability() {
         }
       });
 
-      setMap(newMap);
-      setTimeMap(newTimeMap);
+      const entry: AvailabilityCacheEntry = {
+        map: newMap,
+        timeMap: newTimeMap,
+        rowId: (data?.id as number) ?? null,
+      };
+      availabilityCache[weekKey] = entry;
+      setRowId(entry.rowId);
+      setMap(entry.map);
+      setTimeMap(entry.timeMap);
     } catch (e: any) {
       setError(e.message ?? 'Failed to load availability');
     } finally {
@@ -69,8 +83,23 @@ export function useAvailability() {
   }, [weekStart]);
 
   useEffect(() => {
+    const weekKey = userWeekKey(weekStart);
+    const cached = availabilityCache[weekKey];
+    if (cached) {
+      setRowId(cached.rowId);
+      setMap(cached.map);
+      setTimeMap(cached.timeMap);
+      setLoading(false);
+    } else {
+      load();
+    }
+  }, [weekStart, load]);
+
+  const refresh = useCallback(() => {
+    const weekKey = userWeekKey(weekStart);
+    delete availabilityCache[weekKey];
     load();
-  }, [load]);
+  }, [weekStart, load]);
 
   const save = useCallback(async () => {
     try {
@@ -102,6 +131,13 @@ export function useAvailability() {
         setRowId((data?.id as number) ?? null);
       }
 
+      const cacheEntry: AvailabilityCacheEntry = {
+        map: { ...map },
+        timeMap: { ...timeMap },
+        rowId,
+      };
+      availabilityCache[weekKey] = cacheEntry;
+
       Alert.alert('Saved', 'Availability updated');
     } catch (e: any) {
       Alert.alert('Error', e.message ?? 'Failed to save');
@@ -119,6 +155,6 @@ export function useAvailability() {
     error,
     days,
     save,
-    load,
+    load: refresh,
   };
 }

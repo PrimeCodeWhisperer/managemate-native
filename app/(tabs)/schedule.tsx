@@ -3,52 +3,23 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { supabase } from '@/supabase';
 import { addMonths, format, formatISO, getDay, getDaysInMonth, isSameDay, parseISO, startOfMonth, subMonths } from 'date-fns';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Button, ScrollView, StyleSheet, View } from 'react-native';
+import { useShifts } from '@/hooks/useShifts';
 import MonthNavigator from '@/components/navigation/MonthNavigator';
 import CalendarGrid from '@/components/navigation/CalendarGrid';
-import ShiftDetailCard, { Shift } from '@/components/cards/ShiftDetailCard';
+import ShiftDetailCard from '@/components/cards/ShiftDetailCard';
 import QuickActionsPanel from '@/components/common/QuickActionsPanel';
 
 export default function ScheduleScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
-  const [shifts, setShifts] = useState<Shift[]>([]);
+  const { shifts, loading, error, refresh } = useShifts('upcoming');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string>(
     formatISO(new Date(), { representation: 'date' })
   );
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadShifts = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data: userRes, error: userErr } = await supabase.auth.getUser();
-      if (userErr) throw userErr;
-      const user = userRes.user;
-
-      const base = supabase
-        .from('upcoming_shifts')
-        .select('*')
-        .order('date', { ascending: true })
-        .order('start_time', { ascending: true });
-      const { data, error } = user?.id ? await base.eq('user_id', user.id) : await base;
-      if (error) throw error;
-      setShifts((data ?? []) as Shift[]);
-    } catch (e: any) {
-      setError(e.message ?? 'Failed to load shifts');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadShifts();
-  }, []);
 
   const monthShifts = useMemo(() => {
     return shifts.filter((shift) => {
@@ -149,7 +120,7 @@ export default function ScheduleScreen() {
         <ThemedView style={styles.container}>
           <View style={styles.errorContainer}>
             <ThemedText>{error}</ThemedText>
-            <Button title="Retry" onPress={loadShifts} />
+            <Button title="Retry" onPress={refresh} />
           </View>
         </ThemedView>
       </ErrorBoundary>
