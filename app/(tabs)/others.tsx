@@ -1,3 +1,4 @@
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
@@ -5,7 +6,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Button, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface Profile {
   id: string;
@@ -31,12 +32,15 @@ export default function OthersScreen() {
   const theme = Colors[scheme];
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadProfile();
   }, []);
 
   const loadProfile = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const { data: userRes, error: userErr } = await supabase.auth.getUser();
       if (userErr) throw userErr;
@@ -52,7 +56,7 @@ export default function OthersScreen() {
       if (error) throw error;
       setProfile(data);
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Failed to load profile');
+      setError(e.message ?? 'Failed to load profile');
     } finally {
       setLoading(false);
     }
@@ -176,19 +180,35 @@ export default function OthersScreen() {
 
   if (loading) {
     return (
-      <ThemedView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ThemedText>Loading...</ThemedText>
-        </View>
-      </ThemedView>
+      <ErrorBoundary>
+        <ThemedView style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator />
+          </View>
+        </ThemedView>
+      </ErrorBoundary>
+    );
+  }
+
+  if (error) {
+    return (
+      <ErrorBoundary>
+        <ThemedView style={styles.container}>
+          <View style={styles.errorContainer}>
+            <ThemedText>{error}</ThemedText>
+            <Button title="Retry" onPress={loadProfile} />
+          </View>
+        </ThemedView>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <ErrorBoundary>
+      <ThemedView style={styles.container}>
 
       {/* Main Content */}
-      <ScrollView 
+      <ScrollView
         style={styles.mainContent}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.mainContentContainer}
@@ -270,6 +290,7 @@ export default function OthersScreen() {
         </View>
       </ScrollView>
     </ThemedView>
+    </ErrorBoundary>
   );
 }
 
@@ -282,6 +303,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    padding: 16,
   },
   header: {
     flexDirection: 'row',

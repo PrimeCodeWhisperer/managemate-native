@@ -1,3 +1,4 @@
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
@@ -6,7 +7,7 @@ import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { addMonths, format, formatISO, getDay, getDaysInMonth, isSameDay, parseISO, startOfMonth, subMonths } from 'date-fns';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface Shift { 
   id: string; 
@@ -24,27 +25,33 @@ export default function ScheduleScreen() {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string>(formatISO(new Date(), { representation: 'date' }));
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data: userRes, error: userErr } = await supabase.auth.getUser();
-        if (userErr) throw userErr;
-        const user = userRes.user;
+  const loadShifts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data: userRes, error: userErr } = await supabase.auth.getUser();
+      if (userErr) throw userErr;
+      const user = userRes.user;
 
-        const base = supabase
-          .from('upcoming_shifts')
-          .select('*')
-          .order('date', { ascending: true })
-          .order('start_time', { ascending: true });
-        const { data, error } = user?.id ? await base.eq('user_id', user.id) : await base;
-        if (error) throw error;
-        setShifts((data ?? []) as Shift[]);
-      } catch (e: any) {
-        Alert.alert('Error', e.message ?? 'Failed to load shifts');
-      }
-    })();
-  }, []);
+      const base = supabase
+        .from('upcoming_shifts')
+        .select('*')
+        .order('date', { ascending: true })
+        .order('start_time', { ascending: true });
+      const { data, error } = user?.id ? await base.eq('user_id', user.id) : await base;
+      if (error) throw error;
+      setShifts((data ?? []) as Shift[]);
+    } catch (e: any) {
+      setError(e.message ?? 'Failed to load shifts');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadShifts(); }, []);
 
   const monthShifts = useMemo(() => {
     return shifts.filter(shift => {
@@ -126,10 +133,35 @@ export default function ScheduleScreen() {
     const hours = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60));
     return `${hours}h`;
   };
+  if (loading) {
+    return (
+      <ErrorBoundary>
+        <ThemedView style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator />
+          </View>
+        </ThemedView>
+      </ErrorBoundary>
+    );
+  }
+
+  if (error) {
+    return (
+      <ErrorBoundary>
+        <ThemedView style={styles.container}>
+          <View style={styles.errorContainer}>
+            <ThemedText>{error}</ThemedText>
+            <Button title="Retry" onPress={loadShifts} />
+          </View>
+        </ThemedView>
+      </ErrorBoundary>
+    );
+  }
 
   return (
-    <ThemedView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <ErrorBoundary>
+      <ThemedView style={styles.container}>
+        <ScrollView showsVerticalScrollIndicator={false}>
         {/* Month Navigator */}
         <View style={styles.monthNavigator}>
           <TouchableOpacity 
@@ -298,8 +330,9 @@ export default function ScheduleScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
-    </ThemedView>
+        </ScrollView>
+      </ThemedView>
+    </ErrorBoundary>
   );
 }
 
@@ -308,6 +341,18 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 8,
     paddingBottom:84
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    padding: 16,
   },
   header: {
     flexDirection: 'row',

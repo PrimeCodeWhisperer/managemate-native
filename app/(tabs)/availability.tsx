@@ -1,3 +1,4 @@
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
@@ -6,7 +7,7 @@ import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { addDays, endOfWeek, format, formatISO, startOfWeek } from 'date-fns';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Button, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface DayAvailability {
   available: boolean;
@@ -24,12 +25,16 @@ export default function AvailabilityScreen() {
   const [showModal, setShowModal] = useState(false);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [tempAvailability, setTempAvailability] = useState<DayAvailability>({ available: false });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const userWeekKey = (d: Date) => formatISO(d, { representation: 'date' });
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
 
   const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
       const { data: userRes, error: userErr } = await supabase.auth.getUser();
       if (userErr) throw userErr;
@@ -45,12 +50,12 @@ export default function AvailabilityScreen() {
         .maybeSingle();
       if (error && error.code !== 'PGRST116') throw error; // ignore no rows
       setRowId((data?.id as number) ?? null);
-      
+
       // Handle both old boolean format and new detailed format
       const availability = (data?.availability as Record<string, boolean | DayAvailability>) ?? {};
       const newMap: Record<string, boolean> = {};
       const newTimeMap: Record<string, DayAvailability> = {};
-      
+
       Object.entries(availability).forEach(([key, value]) => {
         if (typeof value === 'boolean') {
           newMap[key] = value;
@@ -60,11 +65,13 @@ export default function AvailabilityScreen() {
           newTimeMap[key] = value;
         }
       });
-      
+
       setMap(newMap);
       setTimeMap(newTimeMap);
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Failed to load availability');
+      setError(e.message ?? 'Failed to load availability');
+    } finally {
+      setLoading(false);
     }
   }, [weekStart]);
 
@@ -145,9 +152,34 @@ export default function AvailabilityScreen() {
     }
     return { text: 'Available', color: '#22c55e' };
   };
+  if (loading) {
+    return (
+      <ErrorBoundary>
+        <ThemedView style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator />
+          </View>
+        </ThemedView>
+      </ErrorBoundary>
+    );
+  }
+
+  if (error) {
+    return (
+      <ErrorBoundary>
+        <ThemedView style={styles.container}>
+          <View style={styles.errorContainer}>
+            <ThemedText>{error}</ThemedText>
+            <Button title="Retry" onPress={load} />
+          </View>
+        </ThemedView>
+      </ErrorBoundary>
+    );
+  }
 
   return (
-    <ThemedView style={styles.container}>
+    <ErrorBoundary>
+      <ThemedView style={styles.container}>
       {/* Week Navigator */}
       <View style={styles.weekNavigator}>
         <TouchableOpacity 
@@ -340,6 +372,7 @@ export default function AvailabilityScreen() {
         </View>
       </Modal>
     </ThemedView>
+    </ErrorBoundary>
   );
 }
 
@@ -347,6 +380,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    padding: 16,
   },
   header: {
     flexDirection: 'row',

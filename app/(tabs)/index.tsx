@@ -1,9 +1,10 @@
 import ClockButton from '@/components/ClockButton';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { supabase } from '@/supabase';
 import { FontAwesome } from '@expo/vector-icons';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface Profile {
   id: string;
@@ -25,7 +26,8 @@ export default function HomeScreen() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [shifts, setShifts] = useState<Shift[]>([]);
-  const [loadingShifts, setLoadingShifts] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [pastShiftId, setPastShiftId]=useState();
   const loadProfile = async () => {
     try {
@@ -45,14 +47,16 @@ export default function HomeScreen() {
   };
 
   const loadShifts = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const { data, error } = await supabase.from('upcoming_shifts').select('*');
       if (error) throw error;
       setShifts((data ?? []) as Shift[]);
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Failed to load shifts');
+      setError(e.message ?? 'Failed to load shifts');
     } finally {
-      setLoadingShifts(false);
+      setLoading(false);
     }
   };
 
@@ -101,8 +105,9 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <ErrorBoundary>
+      <View style={styles.container}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
           <Text style={styles.welcomeTitle}>Welcome back, {getDisplayName()}!</Text>
@@ -139,8 +144,13 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.shiftsContainer}>
-            {loadingShifts ? (
-              <Text>Loading...</Text>
+            {loading ? (
+              <ActivityIndicator />
+            ) : error ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+                <Button title="Retry" onPress={loadShifts} />
+              </View>
             ) : shifts.length > 0 ? (
               shifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)
             ) : (
@@ -169,8 +179,9 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
-      </ScrollView>
-    </View>
+        </ScrollView>
+      </View>
+    </ErrorBoundary>
   );
 }
 
@@ -261,6 +272,15 @@ const styles = StyleSheet.create({
   },
   shiftsContainer: {
     gap: 12,
+  },
+  errorContainer: {
+    alignItems: 'center',
+    gap: 8,
+    padding: 16,
+  },
+  errorText: {
+    marginBottom: 8,
+    color: '#000000',
   },
   shiftCard: {
     backgroundColor: '#FFFFFF',
