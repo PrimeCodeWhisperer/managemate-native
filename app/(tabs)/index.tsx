@@ -1,52 +1,130 @@
 import ErrorBoundary from '@/components/ErrorBoundary';
-import WelcomeSection from '@/components/common/WelcomeSection';
-import TimeTrackingCard from '@/components/cards/TimeTrackingCard';
 import ShiftCard from '@/components/cards/ShiftCard';
+import TimeTrackingCard from '@/components/cards/TimeTrackingCard';
 import VacationCard from '@/components/cards/VacationCard';
-import { supabase } from '@/supabase';
+import WelcomeSection from '@/components/common/WelcomeSection';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { useProfile } from '@/hooks/useProfile';
 import { useShifts } from '@/hooks/useShifts';
-import React, { useState } from 'react';
+import { supabase } from '@/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Colors } from '@/constants/Colors';
+
+const CLOCK_STATUS_KEY = 'clockInStatus';
+const CLOCK_START_KEY = 'clockStartTime';
 
 export default function HomeScreen() {
   const [isClockedIn, setIsClockedIn] = useState(false);
-  const [pastShiftId, setPastShiftId] = useState();
+  const [clockStart, setClockStart] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { profile } = useProfile();
+  
+  // Get both upcoming shifts and open shifts
   const {
-    shifts,
-    loading,
-    error,
-    refresh,
+    shifts: upcomingShifts,
+    loading: upcomingLoading,
+    error: upcomingError,
+    refresh: refreshUpcoming,
   } = useShifts('upcoming');
+  
+  const {
+    shifts: openShifts,
+    loading: openLoading,
+    error: openError,
+    refresh: refreshOpen,
+  } = useShifts('open');
+  
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
 
+  // Load clock status from AsyncStorage and check for active shifts
+  useEffect(() => {
+    loadStoredClockStatus();
+  }, [profile?.id]);
+
+  const loadStoredClockStatus = async () => {
+    try {
+      // First check AsyncStorage
+      const [storedClockStatus, storedClockStart] = await Promise.all([
+        AsyncStorage.getItem(CLOCK_STATUS_KEY),
+        AsyncStorage.getItem(CLOCK_START_KEY)
+      ]);
+
+      // Then check if there's an active shift in the database
+      if (profile?.id) {
+        const today = new Date().toISOString().split('T')[0];
+        const { data: activeShift, error } = await supabase
+          .from('past_shifts')
+          .select('start_time, shift_id')
+          .eq('user_id', profile.id)
+          .eq('date', today)
+          .is('end_time', null)
+          .maybeSingle();
+
+        if (!error && activeShift) {
+          // There's an active shift in the database
+          setIsClockedIn(true);
+          
+          // Calculate start time from database or use stored value
+          if (storedClockStart) {
+            setClockStart(parseInt(storedClockStart, 10));
+          } else {
+            // Parse time from database and create timestamp for today
+            const [hours, minutes] = activeShift.start_time.split(':').map(Number);
+            const todayStart = new Date();
+            todayStart.setHours(hours, minutes, 0, 0);
+            setClockStart(todayStart.getTime());
+            await saveClockStatus(true, todayStart.getTime());
+          }
+        } else if (storedClockStatus === 'true') {
+          // Only trust AsyncStorage if there's no conflicting database state
+          setIsClockedIn(true);
+          if (storedClockStart) {
+            setClockStart(parseInt(storedClockStart, 10));
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load clock status:', e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const saveClockStatus = async (clockedIn: boolean, startTime: number | null) => {
+    try {
+      await Promise.all([
+        AsyncStorage.setItem(CLOCK_STATUS_KEY, clockedIn.toString()),
+        startTime 
+          ? AsyncStorage.setItem(CLOCK_START_KEY, startTime.toString())
+          : AsyncStorage.removeItem(CLOCK_START_KEY)
+      ]);
+    } catch (e) {
+      console.error('Failed to save clock status:', e);
+    }
+  };
+
   const loadClockStatus = async () => {
     try {
-      const today = new Date()
-      const timestring = today.getHours().toString() + ":" + today.getHours().toString()
       if (!isClockedIn) {
-        const { data,error } = await supabase
-          .from('past_shifts')
-          .insert({ user_id: profile?.id, start_time: timestring })
-          .select()
-          .single();
-        if (error) throw error;
-        setPastShiftId(data.id)
+        // Clock in
+        const startTime = Date.now();
+        setClockStart(startTime);
+        setIsClockedIn(true);
+        await saveClockStatus(true, startTime);
       } else {
-        const { error } = await supabase
-          .from('past_shifts')
-          .upsert({ end_time: timestring })
-          .eq("id",pastShiftId);
-        if (error) throw error;
-
+        // Clock out
+        setClockStart(null);
+        setIsClockedIn(false);
+        await saveClockStatus(false, null);
+        
+        // Refresh shifts after clocking out to update the UI
+        refresh();
       }
-      setIsClockedIn(!isClockedIn);
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Failed to load status');
+      Alert.alert('Error', e.message ?? 'Failed to update clock status');
     }
   };
 
@@ -63,6 +141,39 @@ export default function HomeScreen() {
     return 'User';
   };
 
+  // Filter open shifts to show only future ones and limit to 3
+  const getFutureOpenShifts = () => {
+    if (!openShifts) return [];
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return openShifts
+      .filter(shift => {
+        const shiftDate = new Date(shift.date);
+        shiftDate.setHours(0, 0, 0, 0);
+        return shiftDate > today;
+      })
+      .slice(0, 3);
+  };
+
+  const futureOpenShifts = getFutureOpenShifts();
+
+  // Update refresh function to refresh both
+  const refresh = () => {
+    refreshUpcoming();
+    refreshOpen();
+  };
+
+  // Show loading while retrieving clock status
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.foreground} />
+      </View>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -74,6 +185,7 @@ export default function HomeScreen() {
         <TimeTrackingCard
           isClockedIn={isClockedIn}
           onStatusChange={loadClockStatus}
+          startTime={clockStart}
         />
 
         {/* Open Shifts Section */}
@@ -86,15 +198,15 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.shiftsContainer}>
-          {loading ? (
+          {openLoading ? (
               <ActivityIndicator />
-            ) : error ? (
+            ) : openError ? (
               <View style={styles.errorContainer}>
-                <Text style={[styles.errorText, { color: theme.foreground }]}>{error}</Text>
+                <Text style={[styles.errorText, { color: theme.foreground }]}>{openError}</Text>
                 <Button title="Retry" onPress={refresh} />
               </View>
-            ) : shifts.length > 0 ? (
-               shifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)
+            ) : futureOpenShifts.length > 0 ? (
+               futureOpenShifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)
             ) : (
               <EmptyShifts theme={theme} />
             )}

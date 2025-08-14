@@ -1,16 +1,16 @@
+import ShiftDetailCard from '@/components/cards/ShiftDetailCard';
+import QuickActionsPanel from '@/components/common/QuickActionsPanel';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import CalendarGrid from '@/components/navigation/CalendarGrid';
+import MonthNavigator from '@/components/navigation/MonthNavigator';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useShifts } from '@/hooks/useShifts';
 import { addMonths, format, formatISO, getDay, getDaysInMonth, isSameDay, parseISO, startOfMonth, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Button, ScrollView, StyleSheet, View } from 'react-native';
-import { useShifts } from '@/hooks/useShifts';
-import MonthNavigator from '@/components/navigation/MonthNavigator';
-import CalendarGrid from '@/components/navigation/CalendarGrid';
-import ShiftDetailCard from '@/components/cards/ShiftDetailCard';
-import QuickActionsPanel from '@/components/common/QuickActionsPanel';
 
 export default function ScheduleScreen() {
   const scheme = useColorScheme() ?? 'light';
@@ -39,7 +39,9 @@ export default function ScheduleScreen() {
   const calendarDays = useMemo(() => {
     const daysInMonth = getDaysInMonth(currentDate);
     const firstDayOfMonth = startOfMonth(currentDate);
-    const startingDayOfWeek = getDay(firstDayOfMonth);
+    // Adjust for Monday as first day (0=Sunday, 1=Monday, etc.)
+    // Convert Sunday (0) to 6, Monday (1) to 0, Tuesday (2) to 1, etc.
+    const startingDayOfWeek = (getDay(firstDayOfMonth) + 6) % 7;
 
     const days = [] as {
       day: number;
@@ -49,11 +51,15 @@ export default function ScheduleScreen() {
     }[];
 
     // Previous month days
-    for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+    const prevMonth = subMonths(currentDate, 1);
+    const daysInPrevMonth = getDaysInMonth(prevMonth);
+    
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      const day = daysInPrevMonth - startingDayOfWeek + 1 + i;
       const prevDate = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        -i
+        prevMonth.getFullYear(),
+        prevMonth.getMonth(),
+        day
       );
       days.push({
         day: prevDate.getDate(),

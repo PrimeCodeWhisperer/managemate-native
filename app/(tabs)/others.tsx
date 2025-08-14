@@ -1,14 +1,14 @@
+import ProfileSkeleton from '@/components/common/ProfileSkeleton';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Alert, Button, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import ProfileSkeleton from '@/components/common/ProfileSkeleton';
-import { useProfile } from '@/hooks/useProfile';
 
 interface MenuItem {
   id: string;
@@ -329,7 +329,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,

@@ -12,16 +12,23 @@ interface Props {
 }
 
 const WEEK_DAYS = [
-  { label: 'S', key: 'Sun' },
   { label: 'M', key: 'Mon' },
   { label: 'T', key: 'Tue' },
   { label: 'W', key: 'Wed' },
   { label: 'T', key: 'Thu' },
   { label: 'F', key: 'Fri' },
   { label: 'S', key: 'Sat' },
+    { label: 'S', key: 'Sun' },
+
 ];
 
 export default function CalendarGrid({ days, selectedDate, onSelectDate, theme }: Props) {
+  // Group days into weeks of 7
+  const weeks = [];
+  for (let i = 0; i < days.length; i += 7) {
+    weeks.push(days.slice(i, i + 7));
+  }
+
   return (
     <View style={styles.calendarContainer}>
       <View style={styles.calendarHeader}>
@@ -32,14 +39,18 @@ export default function CalendarGrid({ days, selectedDate, onSelectDate, theme }
         ))}
       </View>
       <View style={styles.calendarGrid}>
-        {days.map((day) => (
-          <CalendarDay
-            key={day.date}
-            day={day}
-            selectedDate={selectedDate}
-            onSelect={onSelectDate}
-            theme={theme}
-          />
+        {weeks.map((week, weekIndex) => (
+          <View key={weekIndex} style={styles.weekRow}>
+            {week.map((day) => (
+              <CalendarDay
+                key={day.date}
+                day={day}
+                selectedDate={selectedDate}
+                onSelect={onSelectDate}
+                theme={theme}
+              />
+            ))}
+          </View>
         ))}
       </View>
     </View>
@@ -64,9 +75,12 @@ const styles = StyleSheet.create({
     width: 40,
   },
   calendarGrid: {
+    flexDirection: 'column',
+  },
+  weekRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
+    justifyContent: 'space-around',
+    marginBottom: 4,
   },
 });
 
