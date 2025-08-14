@@ -1,3 +1,4 @@
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
@@ -6,7 +7,7 @@ import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { addMonths, format, isSameMonth, parseISO, subMonths } from 'date-fns';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface Shift { 
   id: string; 
@@ -23,27 +24,33 @@ export default function TimesheetScreen() {
   const theme = Colors[scheme];
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data: userRes, error: userErr } = await supabase.auth.getUser();
-        if (userErr) throw userErr;
-        const user = userRes.user;
+  const loadShifts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data: userRes, error: userErr } = await supabase.auth.getUser();
+      if (userErr) throw userErr;
+      const user = userRes.user;
 
-        const base = supabase
-          .from('past_shifts')
-          .select('*')
-          .order('date', { ascending: false })
-          .order('end_time', { ascending: false });
-        const { data, error } = user?.id ? await base.eq('user_id', user.id) : await base;
-        if (error) throw error;
-        setShifts((data ?? []) as Shift[]);
-      } catch (e: any) {
-        Alert.alert('Error', e.message ?? 'Failed to load timesheet');
-      }
-    })();
-  }, []);
+      const base = supabase
+        .from('past_shifts')
+        .select('*')
+        .order('date', { ascending: false })
+        .order('end_time', { ascending: false });
+      const { data, error } = user?.id ? await base.eq('user_id', user.id) : await base;
+      if (error) throw error;
+      setShifts((data ?? []) as Shift[]);
+    } catch (e: any) {
+      setError(e.message ?? 'Failed to load timesheet');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadShifts(); }, []);
 
   const monthShifts = useMemo(() => {
     return shifts.filter(shift => {
@@ -98,13 +105,38 @@ export default function TimesheetScreen() {
     const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
     
     if (hours > 8) {
-      return { status: 'Overtime', color: '#fbbf24', backgroundColor: '#fbbf2420' };
+    return { status: 'Overtime', color: '#fbbf24', backgroundColor: '#fbbf2420' };
     }
     return { status: 'Completed', color: '#22c55e', backgroundColor: '#22c55e20' };
   };
+  if (loading) {
+    return (
+      <ErrorBoundary>
+        <ThemedView style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator />
+          </View>
+        </ThemedView>
+      </ErrorBoundary>
+    );
+  }
+
+  if (error) {
+    return (
+      <ErrorBoundary>
+        <ThemedView style={styles.container}>
+          <View style={styles.errorContainer}>
+            <ThemedText>{error}</ThemedText>
+            <Button title="Retry" onPress={loadShifts} />
+          </View>
+        </ThemedView>
+      </ErrorBoundary>
+    );
+  }
 
   return (
-    <ThemedView style={styles.container}>
+    <ErrorBoundary>
+      <ThemedView style={styles.container}>
       {/* Month Navigator */}
       <View style={styles.monthNavigator}>
         <TouchableOpacity 
@@ -205,13 +237,14 @@ export default function TimesheetScreen() {
             </ThemedText>
           </View>
           <TouchableOpacity style={[styles.exportButton, { backgroundColor: theme.primary }]}>
-            <Text style={[styles.exportButtonText, { color: theme.primaryForeground }]}>
+            <Text style={[styles.exportButtonText, { color: theme.primaryForeground }]}> 
               Export PDF
             </Text>
           </TouchableOpacity>
         </View>
       </View>
-    </ThemedView>
+      </ThemedView>
+    </ErrorBoundary>
   );
 }
 
@@ -219,6 +252,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    padding: 16,
   },
   header: {
     flexDirection: 'row',
