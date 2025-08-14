@@ -1,10 +1,9 @@
-import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
-import { Ionicons } from '@expo/vector-icons';
+import { DayAvailability } from '@/hooks/useAvailability';
+import { FontAwesome } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { DayAvailability } from '@/hooks/useAvailability';
 
 interface Props {
   day: Date;
@@ -14,103 +13,145 @@ interface Props {
 }
 
 export default function DayAvailabilityCard({ day, availability, onPress, theme }: Props) {
-  const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours, 10);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${minutes} ${ampm}`;
-    };
+  const dayName = format(day, 'EEEE');
+  const dayDate = format(day, 'MMM d');
 
-  const getAvailabilityText = () => {
-    if (!availability?.available) {
-      return { text: 'Not available', color: theme.icon };
+  const renderTimeSlots = () => {
+    if (!availability.available || !availability.timeSlots || availability.timeSlots.length === 0) {
+      return (
+        <View style={styles.unavailableContainer}>
+          <FontAwesome name="times-circle" size={16} color={theme.muted} style={styles.unavailableIcon} />
+          <Text style={[styles.unavailableText, { color: theme.mutedForeground }]}>
+            Not available
+          </Text>
+        </View>
+      );
     }
-    if (availability.startTime && availability.endTime) {
-      return {
-        text: `Available: ${formatTime(availability.startTime)} - ${formatTime(availability.endTime)}`,
-        color: theme.success,
-      };
-    }
-    return { text: 'Available', color: theme.success };
+
+    return (
+      <View style={styles.timeSlotsContainer}>
+        <FontAwesome name="clock-o" size={16} color={theme.success} style={styles.timeIcon} />
+        <View style={styles.timeSlots}>
+          {availability.timeSlots.map((slot, index) => (
+            <Text key={index} style={[styles.timeSlotText, { color: theme.foreground }]}>
+              {slot.start} - {slot.end}
+            </Text>
+          ))}
+        </View>
+      </View>
+    );
   };
-
-  const info = getAvailabilityText();
 
   return (
     <TouchableOpacity
       style={[
-        styles.dayCard,
-        {
+        styles.card,
+        { 
           backgroundColor: theme.background,
           borderColor: theme.secondary,
           shadowColor: theme.shadow,
-        },
+        }
       ]}
       onPress={onPress}
     >
-      <View style={styles.dayCardContent}>
-        <View style={styles.dayCardLeft}>
-          <View style={styles.dayDate}>
-            <Text style={[styles.dayAbbrev, { color: theme.icon }]}>
-              {format(day, 'EEE').toUpperCase()}
-            </Text>
-            <ThemedText style={styles.dayNumber}>{format(day, 'd')}</ThemedText>
-          </View>
+      <View style={styles.cardContent}>
+        <View style={styles.header}>
           <View style={styles.dayInfo}>
-            <ThemedText style={styles.dayName}>{format(day, 'EEEE')}</ThemedText>
-            <Text style={[styles.availabilityText, { color: info.color }]}>{info.text}</Text>
+            <Text style={[styles.dayName, { color: theme.foreground }]}>{dayName}</Text>
+            <Text style={[styles.dayDate, { color: theme.icon }]}>{dayDate}</Text>
+          </View>
+          <View style={[
+            styles.statusBadge,
+            { backgroundColor: availability.available ? theme.successBackground : theme.muted }
+          ]}>
+            <Text style={[
+              styles.statusText,
+              { color: availability.available ? theme.success : theme.mutedForeground }
+            ]}>
+              {availability.available ? 'Available' : 'Unavailable'}
+            </Text>
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={16} color={theme.icon} />
+        
+        <View style={styles.content}>
+          {renderTimeSlots()}
+        </View>
       </View>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  dayCard: {
+  card: {
+    borderWidth: 1,
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    shadowOffset: { width: 0, height: 1 },
+    marginVertical: 4,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
   },
-  dayCardContent: {
+  cardContent: {
+    gap: 12,
+  },
+  header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  dayCardLeft: {
-    flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-  },
-  dayDate: {
-    alignItems: 'center',
-    marginRight: 12,
-    minWidth: 40,
-  },
-  dayAbbrev: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  dayNumber: {
-    fontSize: 18,
-    fontWeight: '600',
   },
   dayInfo: {
     flex: 1,
   },
   dayName: {
     fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  dayDate: {
+    fontSize: 14,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusText: {
+    fontSize: 12,
     fontWeight: '500',
   },
-  availabilityText: {
+  content: {
+    minHeight: 24,
+  },
+  timeSlotsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  timeIcon: {
+    marginRight: 4,
+  },
+  timeSlots: {
+    flex: 1,
+    gap: 4,
+  },
+  timeSlotText: {
     fontSize: 14,
-    marginTop: 2,
+    fontWeight: '500',
+  },
+  unavailableContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  unavailableIcon: {
+    marginRight: 4,
+  },
+  unavailableText: {
+    fontSize: 14,
+    fontStyle: 'italic',
   },
 });

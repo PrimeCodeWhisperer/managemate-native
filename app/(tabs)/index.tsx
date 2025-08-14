@@ -8,12 +8,8 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useProfile } from '@/hooks/useProfile';
 import { useShifts } from '@/hooks/useShifts';
 import { supabase } from '@/supabase';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-const CLOCK_STATUS_KEY = 'clockInStatus';
-const CLOCK_START_KEY = 'clockStartTime';
 
 export default function HomeScreen() {
   const [isClockedIn, setIsClockedIn] = useState(false);
@@ -23,9 +19,6 @@ export default function HomeScreen() {
   
   // Get both upcoming shifts and open shifts
   const {
-    shifts: upcomingShifts,
-    loading: upcomingLoading,
-    error: upcomingError,
     refresh: refreshUpcoming,
   } = useShifts('upcoming');
   
@@ -39,90 +32,57 @@ export default function HomeScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
 
-  // Load clock status from AsyncStorage and check for active shifts
+  // Load clock status from database only
   useEffect(() => {
-    loadStoredClockStatus();
-  }, [profile?.id]);
+    loadClockStatusFromDatabase();
+  });
 
-  const loadStoredClockStatus = async () => {
+  const loadClockStatusFromDatabase = async () => {
+    if (!profile?.id) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // First check AsyncStorage
-      const [storedClockStatus, storedClockStart] = await Promise.all([
-        AsyncStorage.getItem(CLOCK_STATUS_KEY),
-        AsyncStorage.getItem(CLOCK_START_KEY)
-      ]);
+      const today = new Date().toISOString().split('T')[0];
+      const { data: activeShift, error } = await supabase
+        .from('past_shifts')
+        .select('start_time, shift_id')
+        .eq('user_id', profile.id)
+        .eq('date', today)
+        .is('end_time', null)
+        .maybeSingle();
 
-      // Then check if there's an active shift in the database
-      if (profile?.id) {
-        const today = new Date().toISOString().split('T')[0];
-        const { data: activeShift, error } = await supabase
-          .from('past_shifts')
-          .select('start_time, shift_id')
-          .eq('user_id', profile.id)
-          .eq('date', today)
-          .is('end_time', null)
-          .maybeSingle();
-
-        if (!error && activeShift) {
-          // There's an active shift in the database
-          setIsClockedIn(true);
-          
-          // Calculate start time from database or use stored value
-          if (storedClockStart) {
-            setClockStart(parseInt(storedClockStart, 10));
-          } else {
-            // Parse time from database and create timestamp for today
-            const [hours, minutes] = activeShift.start_time.split(':').map(Number);
-            const todayStart = new Date();
-            todayStart.setHours(hours, minutes, 0, 0);
-            setClockStart(todayStart.getTime());
-            await saveClockStatus(true, todayStart.getTime());
-          }
-        } else if (storedClockStatus === 'true') {
-          // Only trust AsyncStorage if there's no conflicting database state
-          setIsClockedIn(true);
-          if (storedClockStart) {
-            setClockStart(parseInt(storedClockStart, 10));
-          }
-        }
+      if (!error && activeShift) {
+        // There's an active shift in the database
+        setIsClockedIn(true);
+        
+        // Parse time from database and create timestamp for today
+        const [hours, minutes] = activeShift.start_time.split(':').map(Number);
+        const todayStart = new Date();
+        todayStart.setHours(hours, minutes, 0, 0);
+        setClockStart(todayStart.getTime());
+      } else {
+        // No active shift
+        setIsClockedIn(false);
+        setClockStart(null);
       }
     } catch (e) {
       console.error('Failed to load clock status:', e);
+      setIsClockedIn(false);
+      setClockStart(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const saveClockStatus = async (clockedIn: boolean, startTime: number | null) => {
+  const handleClockStatusChange = async () => {
     try {
-      await Promise.all([
-        AsyncStorage.setItem(CLOCK_STATUS_KEY, clockedIn.toString()),
-        startTime 
-          ? AsyncStorage.setItem(CLOCK_START_KEY, startTime.toString())
-          : AsyncStorage.removeItem(CLOCK_START_KEY)
-      ]);
-    } catch (e) {
-      console.error('Failed to save clock status:', e);
-    }
-  };
-
-  const loadClockStatus = async () => {
-    try {
-      if (!isClockedIn) {
-        // Clock in
-        const startTime = Date.now();
-        setClockStart(startTime);
-        setIsClockedIn(true);
-        await saveClockStatus(true, startTime);
-      } else {
-        // Clock out
-        setClockStart(null);
-        setIsClockedIn(false);
-        await saveClockStatus(false, null);
-        
-        // Refresh shifts after clocking out to update the UI
-        refresh();
-      }
+      // Refresh the clock status from database after any clock operations
+      await loadClockStatusFromDatabase();
+      
+      // Refresh shifts after clocking operations to update the UI
+      refresh();
     } catch (e: any) {
       Alert.alert('Error', e.message ?? 'Failed to update clock status');
     }
@@ -184,7 +144,7 @@ export default function HomeScreen() {
         {/* Time Tracking Section */}
         <TimeTrackingCard
           isClockedIn={isClockedIn}
-          onStatusChange={loadClockStatus}
+          onStatusChange={handleClockStatusChange}
           startTime={clockStart}
         />
 

@@ -100,7 +100,7 @@ export default function ClockButton({ isClockedIn, onStatusChange, elapsedTime, 
       setCurrentShiftId(existingShift.id);
       await onStatusChange();
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Failed to clock in');
+      Alert.alert('Error, Failed to clock in');
     } finally {
       setLoading(false);
     }

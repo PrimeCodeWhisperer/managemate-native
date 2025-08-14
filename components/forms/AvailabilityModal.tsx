@@ -1,11 +1,11 @@
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
+import { DayAvailability } from '@/hooks/useAvailability';
 import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import React from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import TimeInputGroup from './TimeInputGroup';
-import { DayAvailability } from '@/hooks/useAvailability';
 
 interface Props {
   visible: boolean;
@@ -26,6 +26,50 @@ export default function AvailabilityModal({
   onSave,
   theme,
 }: Props) {
+
+  // Get current start/end times from timeSlots
+  const currentStartTime = availability.timeSlots?.[0]?.start || '09:00';
+  const currentEndTime = availability.timeSlots?.[0]?.end || '17:00';
+
+  const handleStartTimeChange = (time: string) => {
+    
+    setAvailability(prev => ({
+      ...prev,
+      available: true,
+      timeSlots: [{ start: time, end: currentEndTime }],
+    }));
+  };
+
+  const handleEndTimeChange = (time: string) => {
+    
+    setAvailability(prev => ({
+      ...prev,
+      available: true,
+      timeSlots: [{ start: currentStartTime, end: time }],
+    }));
+  };
+
+  const handleAvailableToggle = () => {
+    const newAvailable = !availability.available;
+    
+    
+    if (newAvailable) {
+      // When setting to available, create default timeSlots
+      setAvailability(prev => ({
+        ...prev,
+        available: true,
+        timeSlots: [{ start: currentStartTime, end: currentEndTime }],
+      }));
+    } else {
+      // When setting to unavailable, clear timeSlots
+      setAvailability(prev => ({
+        ...prev,
+        available: false,
+        timeSlots: [],
+      }));
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -57,9 +101,7 @@ export default function AvailabilityModal({
               <View style={styles.availableToggle}>
                 <TouchableOpacity
                   style={styles.toggleRow}
-                  onPress={() =>
-                    setAvailability(prev => ({ ...prev, available: !prev.available }))
-                  }
+                  onPress={handleAvailableToggle}
                 >
                   <View
                     style={[
@@ -80,28 +122,16 @@ export default function AvailabilityModal({
                 <View style={styles.timeInputs}>
                   <TimeInputGroup
                     label="Start Time"
-                    time={availability.startTime}
+                    time={currentStartTime}
                     placeholder="9:00 AM"
-                    onPress={() =>
-                      setAvailability(prev => ({
-                        ...prev,
-                        startTime: prev.startTime || '09:00',
-                        endTime: prev.endTime || '17:00',
-                      }))
-                    }
+                    onTimeChange={handleStartTimeChange}
                     theme={theme}
                   />
                   <TimeInputGroup
                     label="End Time"
-                    time={availability.endTime}
+                    time={currentEndTime}
                     placeholder="5:00 PM"
-                    onPress={() =>
-                      setAvailability(prev => ({
-                        ...prev,
-                        startTime: prev.startTime || '09:00',
-                        endTime: prev.endTime || '17:00',
-                      }))
-                    }
+                    onTimeChange={handleEndTimeChange}
                     theme={theme}
                   />
                 </View>
