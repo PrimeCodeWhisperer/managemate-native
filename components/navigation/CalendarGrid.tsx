@@ -11,20 +11,30 @@ interface Props {
   theme: typeof Colors.light;
 }
 
+const WEEK_DAYS = [
+  { label: 'S', key: 'Sun' },
+  { label: 'M', key: 'Mon' },
+  { label: 'T', key: 'Tue' },
+  { label: 'W', key: 'Wed' },
+  { label: 'T', key: 'Thu' },
+  { label: 'F', key: 'Fri' },
+  { label: 'S', key: 'Sat' },
+];
+
 export default function CalendarGrid({ days, selectedDate, onSelectDate, theme }: Props) {
   return (
     <View style={styles.calendarContainer}>
       <View style={styles.calendarHeader}>
-        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
-          <ThemedText key={index} style={[styles.dayHeader, { color: theme.icon }]}>
-            {day}
+        {WEEK_DAYS.map(({ key, label }) => (
+          <ThemedText key={key} style={[styles.dayHeader, { color: theme.icon }]}>
+            {label}
           </ThemedText>
         ))}
       </View>
       <View style={styles.calendarGrid}>
-        {days.map((day, index) => (
+        {days.map((day) => (
           <CalendarDay
-            key={index}
+            key={day.date}
             day={day}
             selectedDate={selectedDate}
             onSelect={onSelectDate}
