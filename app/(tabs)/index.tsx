@@ -1,4 +1,5 @@
 import { supabase } from '@/supabase';
+import ClockButton from '@/components/ClockButton';
 import { FontAwesome } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -55,9 +56,34 @@ export default function HomeScreen() {
     }
   };
 
+  const loadClockStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('current_shift')
+        .select('id')
+        .maybeSingle();
+      if (error) throw error;
+      setIsClockedIn(!!data);
+    } catch (e: any) {
+      Alert.alert('Error', e.message ?? 'Failed to load status');
+    }
+  };
+
   useEffect(() => {
     loadProfile();
     loadShifts();
+    loadClockStatus();
+    const channel = supabase
+      .channel('shifts_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'shifts' },
+        loadClockStatus
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const getDisplayName = () => {
@@ -71,18 +97,6 @@ export default function HomeScreen() {
       return profile.username;
     }
     return 'User';
-  };
-
-  const handleClockIn = () => {
-    if (!isClockedIn) {
-      setIsClockedIn(true);
-    }
-  };
-
-  const handleClockOut = () => {
-    if (isClockedIn) {
-      setIsClockedIn(false);
-    }
   };
 
   return (
@@ -107,51 +121,10 @@ export default function HomeScreen() {
               </View>
             </View>
             
-            <View style={styles.clockButtonsContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.clockButton,
-                  isClockedIn ? styles.clockButtonDisabled : styles.clockInButton
-                ]}
-                onPress={handleClockIn}
-                disabled={isClockedIn}
-              >
-                <FontAwesome 
-                  name="play" 
-                  size={18} 
-                  color={isClockedIn ? "#9CA3AF" : "white"} 
-                  style={styles.clockButtonIcon}
-                />
-                <Text style={[
-                  styles.clockButtonText,
-                  isClockedIn ? styles.clockButtonTextDisabled : styles.clockButtonTextActive
-                ]}>
-                  Clock In
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[
-                  styles.clockButton,
-                  isClockedIn ? styles.clockOutButton : styles.clockButtonDisabled
-                ]}
-                onPress={handleClockOut}
-                disabled={!isClockedIn}
-              >
-                <FontAwesome 
-                  name="stop" 
-                  size={18} 
-                  color={isClockedIn ? "white" : "#9CA3AF"} 
-                  style={styles.clockButtonIcon}
-                />
-                <Text style={[
-                  styles.clockButtonText,
-                  isClockedIn ? styles.clockButtonTextActive : styles.clockButtonTextDisabled
-                ]}>
-                  Clock Out
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <ClockButton
+              isClockedIn={isClockedIn}
+              onStatusChange={loadClockStatus}
+            />
           </View>
         </View>
 
@@ -265,40 +238,6 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 14,
     color: '#6B7280',
-  },
-  clockButtonsContainer: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  clockButton: {
-    flex: 1,
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'column',
-  },
-  clockInButton: {
-    backgroundColor: '#22C55E',
-  },
-  clockOutButton: {
-    backgroundColor: '#EF4444',
-  },
-  clockButtonDisabled: {
-    backgroundColor: '#D1D5DB',
-  },
-  clockButtonIcon: {
-    marginBottom: 8,
-  },
-  clockButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  clockButtonTextActive: {
-    color: '#FFFFFF',
-  },
-  clockButtonTextDisabled: {
-    color: '#9CA3AF',
   },
   openShiftsSection: {
     marginBottom: 32,
