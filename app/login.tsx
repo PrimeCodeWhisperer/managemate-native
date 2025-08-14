@@ -173,9 +173,9 @@ export default function LoginScreen() {
 
           {/* Sign Up Link */}
           <View style={styles.signUpSection}>
-            <Text style={[styles.signUpText, { color: theme.icon }]}>
-              Don't have an account?{' '}
-              <Text 
+            <Text style={[styles.signUpText, { color: theme.icon }]}> 
+              {"Don't have an account? "}
+              <Text
                 style={[styles.signUpLink, { color: theme.foreground }]}
                 onPress={handleSignUp}
               >
