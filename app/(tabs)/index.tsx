@@ -1,8 +1,9 @@
+import ClockButton from '@/components/ClockButton';
 import { supabase } from '@/supabase';
 import { FontAwesome } from '@expo/vector-icons';
+import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 
 interface Profile {
   id: string;
@@ -25,7 +26,7 @@ export default function HomeScreen() {
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loadingShifts, setLoadingShifts] = useState(true);
-
+  const [pastShiftId, setPastShiftId]=useState();
   const loadProfile = async () => {
     try {
       const { data: userRes, error: userErr } = await supabase.auth.getUser();
@@ -55,6 +56,32 @@ export default function HomeScreen() {
     }
   };
 
+  const loadClockStatus = async () => {
+    try {
+      const today = new Date()
+      const timestring = today.getHours().toString() + ":" + today.getHours().toString()
+      if (!isClockedIn) {
+        const { data,error } = await supabase
+          .from('past_shifts')
+          .insert({ user_id: profile?.id, start_time: timestring })
+          .select()
+          .single();
+        if (error) throw error;
+        setPastShiftId(data.id)
+      } else {
+        const { error } = await supabase
+          .from('past_shifts')
+          .upsert({ end_time: timestring })
+          .eq("id",pastShiftId);
+        if (error) throw error;
+
+      }
+      setIsClockedIn(!isClockedIn);
+    } catch (e: any) {
+      Alert.alert('Error', e.message ?? 'Failed to load status');
+    }
+  };
+
   useEffect(() => {
     loadProfile();
     loadShifts();
@@ -71,18 +98,6 @@ export default function HomeScreen() {
       return profile.username;
     }
     return 'User';
-  };
-
-  const handleClockIn = () => {
-    if (!isClockedIn) {
-      setIsClockedIn(true);
-    }
-  };
-
-  const handleClockOut = () => {
-    if (isClockedIn) {
-      setIsClockedIn(false);
-    }
   };
 
   return (
@@ -106,52 +121,11 @@ export default function HomeScreen() {
                 </Text>
               </View>
             </View>
-            
-            <View style={styles.clockButtonsContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.clockButton,
-                  isClockedIn ? styles.clockButtonDisabled : styles.clockInButton
-                ]}
-                onPress={handleClockIn}
-                disabled={isClockedIn}
-              >
-                <FontAwesome 
-                  name="play" 
-                  size={18} 
-                  color={isClockedIn ? "#9CA3AF" : "white"} 
-                  style={styles.clockButtonIcon}
-                />
-                <Text style={[
-                  styles.clockButtonText,
-                  isClockedIn ? styles.clockButtonTextDisabled : styles.clockButtonTextActive
-                ]}>
-                  Clock In
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[
-                  styles.clockButton,
-                  isClockedIn ? styles.clockOutButton : styles.clockButtonDisabled
-                ]}
-                onPress={handleClockOut}
-                disabled={!isClockedIn}
-              >
-                <FontAwesome 
-                  name="stop" 
-                  size={18} 
-                  color={isClockedIn ? "white" : "#9CA3AF"} 
-                  style={styles.clockButtonIcon}
-                />
-                <Text style={[
-                  styles.clockButtonText,
-                  isClockedIn ? styles.clockButtonTextActive : styles.clockButtonTextDisabled
-                ]}>
-                  Clock Out
-                </Text>
-              </TouchableOpacity>
-            </View>
+
+            <ClockButton
+              isClockedIn={isClockedIn}
+              onStatusChange={loadClockStatus}
+            />
           </View>
         </View>
 
@@ -163,7 +137,7 @@ export default function HomeScreen() {
               <Text style={styles.viewAllButton}>View All</Text>
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.shiftsContainer}>
             {loadingShifts ? (
               <Text>Loading...</Text>
@@ -183,7 +157,7 @@ export default function HomeScreen() {
               <Text style={styles.viewAllButton}>Request</Text>
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.vacationCard}>
             <View style={styles.vacationContent}>
               <FontAwesome name="umbrella" size={48} color="#D1D5DB" style={styles.vacationIcon} />
@@ -204,7 +178,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    paddingBottom:84
+    paddingBottom: 84
 
   },
   scrollView: {
@@ -265,40 +239,6 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 14,
     color: '#6B7280',
-  },
-  clockButtonsContainer: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  clockButton: {
-    flex: 1,
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'column',
-  },
-  clockInButton: {
-    backgroundColor: '#22C55E',
-  },
-  clockOutButton: {
-    backgroundColor: '#EF4444',
-  },
-  clockButtonDisabled: {
-    backgroundColor: '#D1D5DB',
-  },
-  clockButtonIcon: {
-    marginBottom: 8,
-  },
-  clockButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  clockButtonTextActive: {
-    color: '#FFFFFF',
-  },
-  clockButtonTextDisabled: {
-    color: '#9CA3AF',
   },
   openShiftsSection: {
     marginBottom: 32,
