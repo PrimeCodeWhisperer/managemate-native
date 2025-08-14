@@ -24,13 +24,16 @@ export default function CustomHeader({ title }: CustomHeaderProps) {
   };
 
   return (
-    <View style={[
-      styles.headerContainer, 
-      { 
-        backgroundColor: Colors[colorScheme ?? 'light'].background,
-        paddingTop: insets.top,
-      }
-    ]}>
+    <View
+      style={[
+        styles.headerContainer,
+        {
+          backgroundColor: Colors[colorScheme ?? 'light'].background,
+          paddingTop: insets.top,
+          borderBottomColor: Colors[colorScheme ?? 'light'].secondary,
+        },
+      ]}
+    >
       {title && (
         <Text style={[styles.headerTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
           {title}
@@ -42,7 +45,7 @@ export default function CustomHeader({ title }: CustomHeaderProps) {
           style={[styles.optionsButton, { backgroundColor: Colors[colorScheme ?? 'light'].secondary }]}
           onPress={() => setShowOptionsMenu(true)}
         >
-          <IconSymbol size={20} name="ellipsis" color="#666" />
+          <IconSymbol size={20} name="ellipsis" color={Colors[colorScheme ?? 'light'].icon} />
         </TouchableOpacity>
 
         <Modal
@@ -55,7 +58,12 @@ export default function CustomHeader({ title }: CustomHeaderProps) {
             style={styles.modalOverlay}
             onPress={() => setShowOptionsMenu(false)}
           >
-            <View style={[styles.dropdown, { backgroundColor: Colors[colorScheme ?? 'light'].background }]}>
+            <View
+              style={[
+                styles.dropdown,
+                { backgroundColor: Colors[colorScheme ?? 'light'].background, shadowColor: Colors[colorScheme ?? 'light'].shadow },
+              ]}
+            >
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={signOut}
@@ -80,7 +88,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#e1e1e1',
   },
   headerTitle: {
     fontSize: 22,
@@ -106,7 +113,6 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     borderRadius: 8,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,

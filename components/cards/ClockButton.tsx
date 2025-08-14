@@ -2,6 +2,8 @@ import { supabase } from '@/supabase';
 import { FontAwesome } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
 
 interface Props {
   isClockedIn: boolean;
@@ -10,6 +12,8 @@ interface Props {
 
 export default function ClockButton({ isClockedIn, onStatusChange }: Props) {
   const [loading, setLoading] = useState(false);
+  const scheme = useColorScheme() ?? 'light';
+  const theme = Colors[scheme];
 
   const handleClockIn = async () => {
     try {
@@ -54,7 +58,7 @@ export default function ClockButton({ isClockedIn, onStatusChange }: Props) {
       <TouchableOpacity
         style={[
           styles.clockButton,
-          isClockedIn ? styles.clockButtonDisabled : styles.clockInButton,
+          { backgroundColor: isClockedIn ? theme.muted : theme.success },
         ]}
         onPress={handleClockIn}
         disabled={isClockedIn || loading}
@@ -62,15 +66,17 @@ export default function ClockButton({ isClockedIn, onStatusChange }: Props) {
         <FontAwesome
           name="play"
           size={18}
-          color={isClockedIn ? '#9CA3AF' : 'white'}
+          color={isClockedIn ? theme.mutedForeground : theme.primaryForeground}
           style={styles.clockButtonIcon}
         />
         <Text
           style={[
             styles.clockButtonText,
-            isClockedIn
-              ? styles.clockButtonTextDisabled
-              : styles.clockButtonTextActive,
+            {
+              color: isClockedIn
+                ? theme.mutedForeground
+                : theme.primaryForeground,
+            },
           ]}
         >
           Clock In
@@ -80,7 +86,7 @@ export default function ClockButton({ isClockedIn, onStatusChange }: Props) {
       <TouchableOpacity
         style={[
           styles.clockButton,
-          isClockedIn ? styles.clockOutButton : styles.clockButtonDisabled,
+          { backgroundColor: isClockedIn ? theme.destructive : theme.muted },
         ]}
         onPress={handleClockOut}
         disabled={!isClockedIn || loading}
@@ -88,15 +94,17 @@ export default function ClockButton({ isClockedIn, onStatusChange }: Props) {
         <FontAwesome
           name="stop"
           size={18}
-          color={isClockedIn ? 'white' : '#9CA3AF'}
+          color={isClockedIn ? theme.primaryForeground : theme.mutedForeground}
           style={styles.clockButtonIcon}
         />
         <Text
           style={[
             styles.clockButtonText,
-            isClockedIn
-              ? styles.clockButtonTextActive
-              : styles.clockButtonTextDisabled,
+            {
+              color: isClockedIn
+                ? theme.primaryForeground
+                : theme.mutedForeground,
+            },
           ]}
         >
           Clock Out
@@ -119,27 +127,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'column',
   },
-  clockInButton: {
-    backgroundColor: '#22C55E',
-  },
-  clockOutButton: {
-    backgroundColor: '#EF4444',
-  },
-  clockButtonDisabled: {
-    backgroundColor: '#D1D5DB',
-  },
   clockButtonIcon: {
     marginBottom: 8,
   },
   clockButtonText: {
     fontSize: 16,
     fontWeight: '500',
-  },
-  clockButtonTextActive: {
-    color: '#FFFFFF',
-  },
-  clockButtonTextDisabled: {
-    color: '#9CA3AF',
   },
 });
 

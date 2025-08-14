@@ -40,13 +40,13 @@ export default function ShiftDetailCard({ shift, selectedDate, theme }: Props) {
   };
 
   return (
-    <View style={[styles.shiftCard, { backgroundColor: theme.background, borderColor: theme.secondary }]}> 
+    <View style={[styles.shiftCard, { backgroundColor: theme.background, borderColor: theme.secondary, shadowColor: theme.shadow }]}> 
       <View style={styles.shiftCardHeader}>
         <ThemedText style={styles.shiftDate}>
           {format(parseISO(selectedDate), 'EEEE, MMMM do')}
         </ThemedText>
-        <View style={[styles.statusBadge, { backgroundColor: '#22c55e20' }]}> 
-          <Text style={[styles.statusText, { color: '#22c55e' }]}> 
+        <View style={[styles.statusBadge, { backgroundColor: theme.successBackground }]}>
+          <Text style={[styles.statusText, { color: theme.success }]}>
             {shift.status || 'Scheduled'}
           </Text>
         </View>
@@ -110,7 +110,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,

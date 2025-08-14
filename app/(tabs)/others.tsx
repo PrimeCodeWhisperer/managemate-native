@@ -194,10 +194,11 @@ export default function OthersScreen() {
               key={item.id}
               style={[
                 styles.menuItem,
-                { 
-                  backgroundColor: theme.background, 
-                  borderColor: theme.secondary 
-                }
+                {
+                  backgroundColor: theme.background,
+                  borderColor: theme.secondary,
+                  shadowColor: theme.shadow,
+                },
               ]}
               onPress={item.onPress}
               disabled={!item.onPress}
@@ -223,23 +224,31 @@ export default function OthersScreen() {
 
           {/* Sign Out Button */}
           <TouchableOpacity
-            style={[styles.signOutButton, styles.menuItem]}
+            style={[
+              styles.signOutButton,
+              styles.menuItem,
+              {
+                borderColor: theme.destructiveBackground,
+                backgroundColor: theme.destructiveBackground,
+                shadowColor: theme.shadow,
+              },
+            ]}
             onPress={handleSignOut}
           >
             <View style={styles.menuItemLeft}>
-              <View style={styles.signOutIcon}>
-                <Ionicons name="log-out-outline" size={20} color="#ef4444" />
+              <View style={[styles.signOutIcon, { backgroundColor: theme.destructiveBackground }]}>
+                <Ionicons name="log-out-outline" size={20} color={theme.destructive} />
               </View>
               <View style={styles.menuItemText}>
-                <Text style={styles.signOutTitle}>
+                <Text style={[styles.signOutTitle, { color: theme.destructive }]}>
                   Sign Out
                 </Text>
-                <Text style={styles.signOutSubtitle}>
+                <Text style={[styles.signOutSubtitle, { color: theme.destructiveMuted }]}>
                   Log out of your account
                 </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#ef4444" />
+            <Ionicons name="chevron-forward" size={16} color={theme.destructive} />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -267,7 +276,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   headerLeft: {
     width: 32,
@@ -321,7 +329,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    shadowColor: '#000',
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -352,8 +360,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   signOutButton: {
-    borderColor: '#fecaca',
-    backgroundColor: '#fef2f2',
     marginTop: 24,
   },
   signOutIcon: {
@@ -362,17 +368,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fee2e2',
     marginRight: 12,
   },
   signOutTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#ef4444',
   },
   signOutSubtitle: {
     fontSize: 14,
     marginTop: 2,
-    color: '#f87171',
   },
 });

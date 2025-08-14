@@ -29,17 +29,24 @@ export default function DayAvailabilityCard({ day, availability, onPress, theme 
     if (availability.startTime && availability.endTime) {
       return {
         text: `Available: ${formatTime(availability.startTime)} - ${formatTime(availability.endTime)}`,
-        color: '#22c55e',
+        color: theme.success,
       };
     }
-    return { text: 'Available', color: '#22c55e' };
+    return { text: 'Available', color: theme.success };
   };
 
   const info = getAvailabilityText();
 
   return (
     <TouchableOpacity
-      style={[styles.dayCard, { backgroundColor: theme.background, borderColor: theme.secondary }]}
+      style={[
+        styles.dayCard,
+        {
+          backgroundColor: theme.background,
+          borderColor: theme.secondary,
+          shadowColor: theme.shadow,
+        },
+      ]}
       onPress={onPress}
     >
       <View style={styles.dayCardContent}>
@@ -67,7 +74,6 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,

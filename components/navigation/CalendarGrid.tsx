@@ -16,7 +16,7 @@ export default function CalendarGrid({ days, selectedDate, onSelectDate, theme }
     <View style={styles.calendarContainer}>
       <View style={styles.calendarHeader}>
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
-          <ThemedText key={index} style={styles.dayHeader}>
+          <ThemedText key={index} style={[styles.dayHeader, { color: theme.icon }]}>
             {day}
           </ThemedText>
         ))}
@@ -49,7 +49,6 @@ const styles = StyleSheet.create({
   dayHeader: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#6b7280',
     textAlign: 'center',
     paddingVertical: 8,
     width: 40,

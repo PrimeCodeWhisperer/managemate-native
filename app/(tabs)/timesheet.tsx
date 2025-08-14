@@ -65,16 +65,28 @@ export default function TimesheetScreen() {
 
   const getShiftStatus = (startTime: string, endTime?: string) => {
     if (!endTime) {
-      return { status: 'In Progress', color: '#3b82f6', backgroundColor: '#3b82f620' };
+      return {
+        status: 'In Progress',
+        color: theme.info,
+        backgroundColor: theme.infoBackground,
+      };
     }
     const start = parseISO(`2000-01-01T${startTime}`);
     const end = parseISO(`2000-01-01T${endTime}`);
     const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
 
     if (hours > 8) {
-      return { status: 'Overtime', color: '#fbbf24', backgroundColor: '#fbbf2420' };
+      return {
+        status: 'Overtime',
+        color: theme.warning,
+        backgroundColor: theme.warningBackground,
+      };
     }
-    return { status: 'Completed', color: '#22c55e', backgroundColor: '#22c55e20' };
+    return {
+      status: 'Completed',
+      color: theme.success,
+      backgroundColor: theme.successBackground,
+    };
   };
   if (loading) {
     return (
@@ -117,7 +129,7 @@ export default function TimesheetScreen() {
           <ThemedText style={styles.monthText}>
             {format(currentDate, 'MMMM yyyy')}
           </ThemedText>
-          <ThemedText style={styles.totalHours}>
+          <ThemedText style={[styles.totalHours, { color: theme.icon }]}>
             Total: {Math.round(totalHours)} hours
           </ThemedText>
         </View>
@@ -141,7 +153,7 @@ export default function TimesheetScreen() {
             <View key={date} style={styles.dateGroup}>
               {/* Date Header */}
               <View style={styles.dateHeader}>
-                <ThemedText style={styles.dateHeaderText}>
+                <ThemedText style={[styles.dateHeaderText, { color: theme.icon }]}>
                   {format(parseISO(date), 'EEEE, MMMM do')}
                 </ThemedText>
               </View>
@@ -150,7 +162,7 @@ export default function TimesheetScreen() {
               {dayShifts.map((shift) => {
                 const shiftStatus = getShiftStatus(shift.start_time, shift.end_time);
                 return (
-                  <View key={shift.id} style={[styles.shiftCard, { backgroundColor: theme.background, borderColor: theme.secondary }]}>
+                  <View key={shift.id} style={[styles.shiftCard, { backgroundColor: theme.background, borderColor: theme.secondary, shadowColor: theme.shadow }]}> 
                     <View style={styles.shiftCardHeader}>
                       <View style={styles.shiftInfo}>
                         <ThemedText style={styles.shiftTitle}>
@@ -239,7 +251,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   headerTitle: {
     fontSize: 20,
@@ -275,7 +286,6 @@ const styles = StyleSheet.create({
   },
   totalHours: {
     fontSize: 12,
-    color: '#6b7280',
     marginTop: 2,
   },
   shiftsList: {
@@ -295,14 +305,12 @@ const styles = StyleSheet.create({
   dateHeaderText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#6b7280',
   },
   shiftCard: {
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,

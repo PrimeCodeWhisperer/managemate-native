@@ -8,6 +8,8 @@ import { useProfile } from '@/hooks/useProfile';
 import { useShifts } from '@/hooks/useShifts';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
 
 export default function HomeScreen() {
   const [isClockedIn, setIsClockedIn] = useState(false);
@@ -19,6 +21,8 @@ export default function HomeScreen() {
     error,
     refresh,
   } = useShifts('upcoming');
+  const scheme = useColorScheme() ?? 'light';
+  const theme = Colors[scheme];
 
   const loadClockStatus = async () => {
     try {
@@ -61,7 +65,7 @@ export default function HomeScreen() {
 
   return (
     <ErrorBoundary>
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Welcome Section */}
         <WelcomeSection displayName={getDisplayName()} />
@@ -75,9 +79,9 @@ export default function HomeScreen() {
         {/* Open Shifts Section */}
         <View style={styles.openShiftsSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Open Shifts</Text>
+            <Text style={[styles.sectionTitle, { color: theme.foreground }]}>Open Shifts</Text>
             <TouchableOpacity>
-              <Text style={styles.viewAllButton}>View All</Text>
+              <Text style={[styles.viewAllButton, { color: theme.foreground }]}>View All</Text>
             </TouchableOpacity>
           </View>
 
@@ -86,13 +90,13 @@ export default function HomeScreen() {
               <ActivityIndicator />
             ) : error ? (
               <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
+                <Text style={[styles.errorText, { color: theme.foreground }]}>{error}</Text>
                 <Button title="Retry" onPress={refresh} />
               </View>
             ) : shifts.length > 0 ? (
-              shifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)
+               shifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)
             ) : (
-              <EmptyShifts />
+              <EmptyShifts theme={theme} />
             )}
           </View>
         </View>
@@ -100,9 +104,9 @@ export default function HomeScreen() {
         {/* Vacations Section */}
         <View style={styles.vacationsSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Vacations</Text>
+            <Text style={[styles.sectionTitle, { color: theme.foreground }]}>Vacations</Text>
             <TouchableOpacity>
-              <Text style={styles.viewAllButton}>Request</Text>
+              <Text style={[styles.viewAllButton, { color: theme.foreground }]}>Request</Text>
             </TouchableOpacity>
           </View>
 
@@ -117,7 +121,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     paddingBottom: 84
 
   },
@@ -139,12 +142,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000000',
   },
   viewAllButton: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#000000',
   },
   shiftsContainer: {
     gap: 12,
@@ -156,12 +157,9 @@ const styles = StyleSheet.create({
   },
   errorText: {
     marginBottom: 8,
-    color: '#000000',
   },
   emptyShifts: {
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 8,
     padding: 24,
     alignItems: 'center',
@@ -169,12 +167,10 @@ const styles = StyleSheet.create({
   emptyShiftsTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000000',
     marginBottom: 4,
   },
   emptyShiftsSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
     textAlign: 'center',
   },
   vacationsSection: {
@@ -182,11 +178,11 @@ const styles = StyleSheet.create({
   },
 });
 
-function EmptyShifts() {
+function EmptyShifts({ theme }: { theme: typeof Colors.light }) {
   return (
-    <View style={styles.emptyShifts}>
-      <Text style={styles.emptyShiftsTitle}>No open shifts</Text>
-      <Text style={styles.emptyShiftsSubtitle}>
+    <View style={[styles.emptyShifts, { backgroundColor: theme.background, borderColor: theme.secondary }]}>
+      <Text style={[styles.emptyShiftsTitle, { color: theme.foreground }]}>No open shifts</Text>
+      <Text style={[styles.emptyShiftsSubtitle, { color: theme.icon }]}> 
         {"You're all caught up for now"}
       </Text>
     </View>
