@@ -5,7 +5,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { supabase } from '@/supabase';
 import { format, isToday, parseISO } from 'date-fns';
 import React, { useEffect, useState } from 'react';
-import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 interface Shift {
   id: string;
@@ -16,7 +16,7 @@ interface Shift {
 export default function HomeScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
-  const [email, setEmail] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
   const [todayShifts, setTodayShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -26,7 +26,11 @@ export default function HomeScreen() {
       const { data: userRes, error: userErr } = await supabase.auth.getUser();
       if (userErr) throw userErr;
       const user = userRes.user;
-      setEmail(user?.email ?? null);
+      const { data: profileRes, error: profileErr } = await supabase.from("profiles").select("*").eq("id",user.id).single();
+      if(profileErr) throw profileErr;
+      const profile = profileRes;
+      setUsername(profile.username)
+
 
       const query = supabase
         .from('upcoming_shifts')
@@ -50,7 +54,7 @@ export default function HomeScreen() {
   }, []);
 
   const renderShift = ({ item }: { item: Shift }) => (
-    <View style={[styles.card, { backgroundColor: theme.secondary }]}> 
+    <View style={[styles.card, { backgroundColor: theme.secondary }]}>
       <ThemedText type="subtitle">Shift</ThemedText>
       <ThemedText>
         {format(parseISO(item.date), 'PP')} · {item.start_time}
@@ -59,30 +63,36 @@ export default function HomeScreen() {
   );
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor: theme.background }]}> 
-      <ThemedText type="title">Welcome {email ?? ''}</ThemedText>
+    <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
 
-      <ThemedText type="subtitle" style={styles.sectionTitle}>Today&apos;s Shifts</ThemedText>
-      <FlatList
-        data={todayShifts}
-        keyExtractor={(i) => String(i.id)}
-        renderItem={renderShift}
-        ListEmptyComponent={<ThemedText>No shifts today.</ThemedText>}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
-        contentContainerStyle={{ gap: 12 }}
-      />
+      <ScrollView>
+        <ThemedText type="title">Welcome {username ?? ''}</ThemedText>
+        
+        <ThemedText type="subtitle" style={styles.sectionTitle}>Today&apos;s Shifts</ThemedText>
+        <ThemedView>
+<FlatList
+          data={todayShifts}
+          keyExtractor={(i) => String(i.id)}
+          renderItem={renderShift}
+          ListEmptyComponent={<ThemedText>No shifts today.</ThemedText>}
+          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
+          contentContainerStyle={{ gap: 12 }}
+        />
+        </ThemedView>
+        
+        <View style={styles.spacer} />
 
-      <View style={styles.spacer} />
+        <ThemedText type="subtitle" style={styles.sectionTitle}>Open Shifts</ThemedText>
+        <View style={[styles.placeholder, { borderColor: theme.secondary }]}>
+          <ThemedText>Coming soon</ThemedText>
+        </View>
 
-      <ThemedText type="subtitle" style={styles.sectionTitle}>Open Shifts</ThemedText>
-      <View style={[styles.placeholder, { borderColor: theme.secondary }]}>
-        <ThemedText>Coming soon</ThemedText>
-      </View>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>Vacations</ThemedText>
+        <View style={[styles.placeholder, { borderColor: theme.secondary }]}>
+          <ThemedText>Coming soon</ThemedText>
+        </View>
 
-      <ThemedText type="subtitle" style={styles.sectionTitle}>Vacations</ThemedText>
-      <View style={[styles.placeholder, { borderColor: theme.secondary }]}>
-        <ThemedText>Coming soon</ThemedText>
-      </View>
+      </ScrollView>
     </ThemedView>
   );
 }

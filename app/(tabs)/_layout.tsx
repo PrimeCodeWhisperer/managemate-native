@@ -1,22 +1,28 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Button, Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import supabase from '@/supabase';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+    const router=useRouter();
+    const signOut =async () => {
+      await supabase.auth.signOut();
+      router.push("./src/screens/")
+    };
 
   return (
     <Tabs
       screenOptions={{
+        headerRight: () => <Button title="Logout" onPress={signOut} ></Button>,
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         tabBarInactiveTintColor: Colors[colorScheme ?? 'light'].tabIconDefault,
-
         headerShown: true,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,

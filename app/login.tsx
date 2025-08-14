@@ -28,7 +28,7 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', android: undefined })} style={{ flex: 1 }}>
       <ThemedView style={[styles.container, { backgroundColor: theme.background }]}> 
-        <ThemedText type="title" style={{ marginBottom: 16 }}>ManageMate</ThemedText>
+        <ThemedText type="title" style={{ marginBottom: 16 ,textAlign:"center"}}>ManageMate</ThemedText>
 
         <View style={styles.field}>
           <ThemedText>Email</ThemedText>
