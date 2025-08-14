@@ -3,54 +3,17 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { addMonths, format, isSameMonth, parseISO, subMonths } from 'date-fns';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-interface Shift { 
-  id: string; 
-  date: string; 
-  start_time: string; 
-  end_time: string;
-  location?: string;
-  role?: string;
-  status?: string;
-}
+import { useShifts, Shift } from '@/hooks/useShifts';
 
 export default function TimesheetScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
-  const [shifts, setShifts] = useState<Shift[]>([]);
+  const { shifts, loading, error, refresh } = useShifts('past');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadShifts = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data: userRes, error: userErr } = await supabase.auth.getUser();
-      if (userErr) throw userErr;
-      const user = userRes.user;
-
-      const base = supabase
-        .from('past_shifts')
-        .select('*')
-        .order('date', { ascending: false })
-        .order('end_time', { ascending: false });
-      const { data, error } = user?.id ? await base.eq('user_id', user.id) : await base;
-      if (error) throw error;
-      setShifts((data ?? []) as Shift[]);
-    } catch (e: any) {
-      setError(e.message ?? 'Failed to load timesheet');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { loadShifts(); }, []);
 
   const monthShifts = useMemo(() => {
     return shifts.filter(shift => {
@@ -86,26 +49,30 @@ export default function TimesheetScreen() {
     setCurrentDate(prev => direction === 'prev' ? subMonths(prev, 1) : addMonths(prev, 1));
   };
 
-  const formatShiftTime = (startTime: string, endTime: string) => {
+  const formatShiftTime = (startTime: string, endTime?: string) => {
     const start = format(parseISO(`2000-01-01T${startTime}`), 'h:mm a');
-    const end = format(parseISO(`2000-01-01T${endTime}`), 'h:mm a');
-    return `${start} - ${end}`;
+    const end = endTime ? format(parseISO(`2000-01-01T${endTime}`), 'h:mm a') : '';
+    return end ? `${start} - ${end}` : start;
   };
 
-  const calculateShiftDuration = (startTime: string, endTime: string) => {
+  const calculateShiftDuration = (startTime: string, endTime?: string) => {
+    if (!endTime) return '';
     const start = parseISO(`2000-01-01T${startTime}`);
     const end = parseISO(`2000-01-01T${endTime}`);
     const hours = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60));
     return `${hours}h`;
   };
 
-  const getShiftStatus = (startTime: string, endTime: string) => {
+  const getShiftStatus = (startTime: string, endTime?: string) => {
+    if (!endTime) {
+      return { status: 'In Progress', color: '#3b82f6', backgroundColor: '#3b82f620' };
+    }
     const start = parseISO(`2000-01-01T${startTime}`);
     const end = parseISO(`2000-01-01T${endTime}`);
     const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-    
+
     if (hours > 8) {
-    return { status: 'Overtime', color: '#fbbf24', backgroundColor: '#fbbf2420' };
+      return { status: 'Overtime', color: '#fbbf24', backgroundColor: '#fbbf2420' };
     }
     return { status: 'Completed', color: '#22c55e', backgroundColor: '#22c55e20' };
   };
@@ -127,7 +94,7 @@ export default function TimesheetScreen() {
         <ThemedView style={styles.container}>
           <View style={styles.errorContainer}>
             <ThemedText>{error}</ThemedText>
-            <Button title="Retry" onPress={loadShifts} />
+            <Button title="Retry" onPress={refresh} />
           </View>
         </ThemedView>
       </ErrorBoundary>
