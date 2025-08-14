@@ -13,6 +13,7 @@ import { Colors } from '@/constants/Colors';
 
 export default function HomeScreen() {
   const [isClockedIn, setIsClockedIn] = useState(false);
+  const [clockStart, setClockStart] = useState<number | null>(null);
   const [pastShiftId, setPastShiftId] = useState();
   const { profile } = useProfile();
   const {
@@ -36,13 +37,14 @@ export default function HomeScreen() {
           .single();
         if (error) throw error;
         setPastShiftId(data.id)
+        setClockStart(Date.now());
       } else {
         const { error } = await supabase
           .from('past_shifts')
           .upsert({ end_time: timestring })
           .eq("id",pastShiftId);
         if (error) throw error;
-
+        setClockStart(null);
       }
       setIsClockedIn(!isClockedIn);
     } catch (e: any) {
@@ -74,6 +76,7 @@ export default function HomeScreen() {
         <TimeTrackingCard
           isClockedIn={isClockedIn}
           onStatusChange={loadClockStatus}
+          startTime={clockStart}
         />
 
         {/* Open Shifts Section */}

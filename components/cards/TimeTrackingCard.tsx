@@ -1,6 +1,6 @@
 import ClockButton from '@/components/cards/ClockButton';
 import { FontAwesome } from '@expo/vector-icons';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
@@ -8,11 +8,34 @@ import { Colors } from '@/constants/Colors';
 interface Props {
   isClockedIn: boolean;
   onStatusChange: () => Promise<void> | void;
+  startTime: number | null;
 }
 
-export default function TimeTrackingCard({ isClockedIn, onStatusChange }: Props) {
+export default function TimeTrackingCard({ isClockedIn, onStatusChange, startTime }: Props) {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | undefined;
+    if (isClockedIn && startTime) {
+      const update = () => setElapsed(Date.now() - startTime);
+      update();
+      interval = setInterval(update, 1000);
+    } else {
+      setElapsed(0);
+    }
+    return () => interval && clearInterval(interval);
+  }, [isClockedIn, startTime]);
+
+  const formatDuration = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  };
   return (
     <View style={styles.clockSection}>
       <View
@@ -39,7 +62,16 @@ export default function TimeTrackingCard({ isClockedIn, onStatusChange }: Props)
             </Text>
           </View>
         </View>
-        <ClockButton isClockedIn={isClockedIn} onStatusChange={onStatusChange} />
+        {isClockedIn && (
+          <Text style={[styles.timerText, { color: theme.foreground }]}>
+            {formatDuration(elapsed)}
+          </Text>
+        )}
+        <ClockButton
+          isClockedIn={isClockedIn}
+          onStatusChange={onStatusChange}
+          elapsedTime={elapsed}
+        />
       </View>
     </View>
   );
@@ -80,5 +112,11 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 14,
+  },
+  timerText: {
+    fontSize: 32,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 16,
   },
 });

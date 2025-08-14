@@ -8,9 +8,10 @@ import { Colors } from '@/constants/Colors';
 interface Props {
   isClockedIn: boolean;
   onStatusChange: () => Promise<void> | void;
+  elapsedTime: number;
 }
 
-export default function ClockButton({ isClockedIn, onStatusChange }: Props) {
+export default function ClockButton({ isClockedIn, onStatusChange, elapsedTime }: Props) {
   const [loading, setLoading] = useState(false);
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
@@ -53,6 +54,26 @@ export default function ClockButton({ isClockedIn, onStatusChange }: Props) {
     }
   };
 
+  const formatDuration = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  };
+
+  const confirmClockOut = () => {
+    Alert.alert(
+      'Clock Out',
+      `Stop and submit ${formatDuration(elapsedTime)} of work?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Submit', onPress: handleClockOut },
+      ],
+    );
+  };
+
   return (
     <View style={styles.clockButtonsContainer}>
       <TouchableOpacity
@@ -88,7 +109,7 @@ export default function ClockButton({ isClockedIn, onStatusChange }: Props) {
           styles.clockButton,
           { backgroundColor: isClockedIn ? theme.destructive : theme.muted },
         ]}
-        onPress={handleClockOut}
+        onPress={confirmClockOut}
         disabled={!isClockedIn || loading}
       >
         <FontAwesome
