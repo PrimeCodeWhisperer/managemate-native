@@ -2,6 +2,8 @@ import ClockButton from '@/components/cards/ClockButton';
 import { FontAwesome } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
 
 interface Props {
   isClockedIn: boolean;
@@ -9,14 +11,30 @@ interface Props {
 }
 
 export default function TimeTrackingCard({ isClockedIn, onStatusChange }: Props) {
+  const scheme = useColorScheme() ?? 'light';
+  const theme = Colors[scheme];
   return (
     <View style={styles.clockSection}>
-      <View style={styles.card}>
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: theme.background,
+            borderColor: theme.secondary,
+            shadowColor: theme.shadow,
+          },
+        ]}
+      >
         <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>Time Tracking</Text>
+          <Text style={[styles.cardTitle, { color: theme.foreground }]}>Time Tracking</Text>
           <View style={styles.statusContainer}>
-            <FontAwesome name="clock-o" size={14} color="#6B7280" style={styles.statusIcon} />
-            <Text style={styles.statusText}>
+            <FontAwesome
+              name="clock-o"
+              size={14}
+              color={theme.icon}
+              style={styles.statusIcon}
+            />
+            <Text style={[styles.statusText, { color: theme.icon }]}>
               {isClockedIn ? 'Clocked in' : 'Not clocked in'}
             </Text>
           </View>
@@ -32,12 +50,9 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   card: {
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 12,
     padding: 24,
-    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 1,
@@ -55,7 +70,6 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000000',
   },
   statusContainer: {
     flexDirection: 'row',
@@ -66,6 +80,5 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 14,
-    color: '#6B7280',
   },
 });

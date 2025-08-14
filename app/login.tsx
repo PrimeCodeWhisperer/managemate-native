@@ -89,7 +89,7 @@ export default function LoginScreen() {
               
               {/* Email Field */}
               <View style={styles.fieldContainer}>
-                <Text style={[styles.fieldLabel, { color: '#374151' }]}>Email</Text>
+                <Text style={[styles.fieldLabel, { color: theme.icon }]}>Email</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
                     value={email}
@@ -97,33 +97,33 @@ export default function LoginScreen() {
                     autoCapitalize="none"
                     keyboardType="email-address"
                     placeholder="Enter your email"
-                    placeholderTextColor="#9CA3AF"
-                    style={[styles.input, { color: theme.foreground }]}
+                    placeholderTextColor={theme.mutedForeground}
+                    style={[styles.input, { backgroundColor: theme.background, borderColor: theme.secondary, color: theme.foreground }]}
                   />
-                  <Ionicons name="person-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                  <Ionicons name="person-outline" size={20} color={theme.mutedForeground} style={styles.inputIcon} />
                 </View>
               </View>
 
               {/* Password Field */}
               <View style={styles.fieldContainer}>
-                <Text style={[styles.fieldLabel, { color: '#374151' }]}>Password</Text>
+                <Text style={[styles.fieldLabel, { color: theme.icon }]}>Password</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!showPassword}
                     placeholder="Enter your password"
-                    placeholderTextColor="#9CA3AF"
-                    style={[styles.input, { color: theme.foreground }]}
+                    placeholderTextColor={theme.mutedForeground}
+                    style={[styles.input, { backgroundColor: theme.background, borderColor: theme.secondary, color: theme.foreground }]}
                   />
                   <TouchableOpacity 
                     onPress={() => setShowPassword(!showPassword)}
                     style={styles.inputIcon}
                   >
-                    <Ionicons 
-                      name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                      size={20} 
-                      color="#9CA3AF" 
+                    <Ionicons
+                      name={showPassword ? "eye-off-outline" : "eye-outline"}
+                      size={20}
+                      color={theme.mutedForeground}
                     />
                   </TouchableOpacity>
                 </View>
@@ -138,13 +138,13 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             {/* Sign In Button */}
-            <Pressable 
-              disabled={loading} 
-              onPress={signIn} 
+            <Pressable
+              disabled={loading}
+              onPress={signIn}
               style={[
-                styles.signInButton, 
-                { backgroundColor: theme.primary },
-                loading && styles.disabledButton
+                styles.signInButton,
+                { backgroundColor: theme.primary, shadowColor: theme.shadow },
+                loading && styles.disabledButton,
               ]}
             >
               <Text style={[styles.signInButtonText, { color: theme.primaryForeground }]}>
@@ -154,17 +154,17 @@ export default function LoginScreen() {
 
             {/* Divider */}
             <View style={styles.divider}>
-              <View style={styles.dividerLine} />
+              <View style={[styles.dividerLine, { backgroundColor: theme.secondary }]} />
               <Text style={[styles.dividerText, { color: theme.icon }]}>or</Text>
-              <View style={styles.dividerLine} />
+              <View style={[styles.dividerLine, { backgroundColor: theme.secondary }]} />
             </View>
 
             {/* Google Sign In */}
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={signInWithGoogle}
-              style={[styles.googleButton, { borderColor: theme.secondary }]}
+              style={[styles.googleButton, { borderColor: theme.secondary, backgroundColor: theme.background }]}
             >
-              <Ionicons name="logo-google" size={20} color="#4285F4" />
+              <Ionicons name="logo-google" size={20} color={theme.info} />
               <Text style={[styles.googleButtonText, { color: theme.foreground }]}>
                 Continue with Google
               </Text>
@@ -259,9 +259,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   input: {
-    backgroundColor: '#F9FAFB',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 16,
@@ -286,7 +284,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 16,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -307,7 +304,6 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E5E7EB',
   },
   dividerText: {
     paddingHorizontal: 16,
@@ -321,7 +317,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     borderWidth: 1,
-    backgroundColor: '#F9FAFB',
     gap: 12,
   },
   googleButtonText: {

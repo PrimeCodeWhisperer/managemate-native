@@ -24,7 +24,7 @@ export default function MonthNavigator({ currentDate, shiftCount, onNavigate, th
 
       <View style={styles.monthInfo}>
         <ThemedText style={styles.monthText}>{format(currentDate, 'MMMM yyyy')}</ThemedText>
-        <ThemedText style={styles.shiftsCount}>{shiftCount} shifts scheduled</ThemedText>
+        <ThemedText style={[styles.shiftsCount, { color: theme.icon }]}>{shiftCount} shifts scheduled</ThemedText>
       </View>
 
       <TouchableOpacity
@@ -61,7 +61,6 @@ const styles = StyleSheet.create({
   },
   shiftsCount: {
     fontSize: 12,
-    color: '#6b7280',
     marginTop: 2,
   },
 });

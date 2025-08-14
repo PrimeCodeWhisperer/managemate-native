@@ -25,7 +25,7 @@ export default function WeekNavigator({ weekStart, onNavigate, theme }: Props) {
         <ThemedText style={styles.weekText}>
           Week of {format(weekStart, 'MMM d')}-{format(endOfWeek(weekStart, { weekStartsOn: 1 }), 'd')}
         </ThemedText>
-        <ThemedText style={styles.weekSubtext}>Set your availability</ThemedText>
+        <ThemedText style={[styles.weekSubtext, { color: theme.icon }]}>Set your availability</ThemedText>
       </View>
 
       <TouchableOpacity
@@ -62,7 +62,6 @@ const styles = StyleSheet.create({
   },
   weekSubtext: {
     fontSize: 12,
-    color: '#6b7280',
     marginTop: 2,
   },
 });

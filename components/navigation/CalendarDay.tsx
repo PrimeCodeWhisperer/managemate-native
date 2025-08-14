@@ -35,7 +35,7 @@ export default function CalendarDay({ day, selectedDate, onSelect, theme }: Prop
           { color: theme.foreground },
           day.hasShift && { color: theme.background },
           isSelected && styles.selectedDayText,
-          !day.isCurrentMonth && styles.otherMonthText,
+          !day.isCurrentMonth && { color: theme.muted },
         ]}
       >
         {day.day}
@@ -73,9 +73,6 @@ const styles = StyleSheet.create({
   },
   selectedDayText: {
     fontWeight: '600',
-  },
-  otherMonthText: {
-    color: '#d1d5db',
   },
   shiftDot: {
     position: 'absolute',

@@ -1,6 +1,8 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
 
 import CustomHeader from '@/components/CustomHeader';
 import { HapticTab } from '@/components/HapticTab';
@@ -8,18 +10,20 @@ import TabBarBackground from '@/components/ui/TabBarBackground';
 import { FontAwesome } from '@expo/vector-icons';
 
 export default function TabLayout() {
+  const colorScheme = useColorScheme() ?? 'light';
+  const theme = Colors[colorScheme];
   return (
     <Tabs
       screenOptions={{
         header: ({ route, options }) => <CustomHeader title={options.title as string} />,
-        tabBarActiveTintColor: '#000000',
-        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarActiveTintColor: theme.foreground,
+        tabBarInactiveTintColor: theme.mutedForeground,
         headerShown: true,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#E5E7EB',
+          backgroundColor: theme.background,
+          borderTopColor: theme.secondary,
           borderTopWidth: 1,
           ...Platform.select({
             ios: {
@@ -32,18 +36,19 @@ export default function TabLayout() {
           fontSize: 12,
           fontWeight: '500',
           marginTop: 4,
-        }
-      }}>
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Managemate',
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color, focused }) => (
-            <FontAwesome 
-              name="home" 
-              size={20} 
-              color={focused ? '#000000' : '#9CA3AF'} 
+          tabBarIcon: ({ focused }) => (
+            <FontAwesome
+              name="home"
+              size={20}
+              color={focused ? theme.foreground : theme.mutedForeground}
             />
           ),
         }}
@@ -52,11 +57,11 @@ export default function TabLayout() {
         name="schedule"
         options={{
           title: 'Schedule',
-          tabBarIcon: ({ color, focused }) => (
-            <FontAwesome 
-              name="calendar" 
-              size={20} 
-              color={focused ? '#000000' : '#9CA3AF'} 
+          tabBarIcon: ({ focused }) => (
+            <FontAwesome
+              name="calendar"
+              size={20}
+              color={focused ? theme.foreground : theme.mutedForeground}
             />
           ),
         }}
@@ -65,11 +70,11 @@ export default function TabLayout() {
         name="timesheet"
         options={{
           title: 'Timesheet',
-          tabBarIcon: ({ color, focused }) => (
-            <FontAwesome 
-              name="clock-o" 
-              size={20} 
-              color={focused ? '#000000' : '#9CA3AF'} 
+          tabBarIcon: ({ focused }) => (
+            <FontAwesome
+              name="clock-o"
+              size={20}
+              color={focused ? theme.foreground : theme.mutedForeground}
             />
           ),
         }}
@@ -78,11 +83,11 @@ export default function TabLayout() {
         name="availability"
         options={{
           title: 'Availability',
-          tabBarIcon: ({ color, focused }) => (
-            <FontAwesome 
-              name="user" 
-              size={20} 
-              color={focused ? '#000000' : '#9CA3AF'} 
+          tabBarIcon: ({ focused }) => (
+            <FontAwesome
+              name="user"
+              size={20}
+              color={focused ? theme.foreground : theme.mutedForeground}
             />
           ),
         }}
@@ -91,11 +96,11 @@ export default function TabLayout() {
         name="others"
         options={{
           title: 'Other',
-          tabBarIcon: ({ color, focused }) => (
-            <FontAwesome 
-              name="ellipsis-h" 
-              size={20} 
-              color={focused ? '#000000' : '#9CA3AF'} 
+          tabBarIcon: ({ focused }) => (
+            <FontAwesome
+              name="ellipsis-h"
+              size={20}
+              color={focused ? theme.foreground : theme.mutedForeground}
             />
           ),
         }}

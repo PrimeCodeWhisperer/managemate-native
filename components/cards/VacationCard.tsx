@@ -1,16 +1,26 @@
 import { FontAwesome } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
 
 export default function VacationCard() {
+  const scheme = useColorScheme() ?? 'light';
+  const theme = Colors[scheme];
+
   return (
-    <View style={styles.vacationCard}>
+    <View
+      style={[
+        styles.vacationCard,
+        { backgroundColor: theme.background, borderColor: theme.secondary, shadowColor: theme.shadow },
+      ]}
+    >
       <View style={styles.vacationContent}>
-        <FontAwesome name="umbrella" size={48} color="#D1D5DB" style={styles.vacationIcon} />
-        <Text style={styles.vacationTitle}>No upcoming vacations</Text>
-        <Text style={styles.vacationSubtitle}>Plan your time off and submit vacation requests</Text>
-        <TouchableOpacity style={styles.vacationButton}>
-          <Text style={styles.vacationButtonText}>Request Vacation</Text>
+        <FontAwesome name="umbrella" size={48} color={theme.muted} style={styles.vacationIcon} />
+        <Text style={[styles.vacationTitle, { color: theme.foreground }]}>No upcoming vacations</Text>
+        <Text style={[styles.vacationSubtitle, { color: theme.icon }]}>Plan your time off and submit vacation requests</Text>
+        <TouchableOpacity style={[styles.vacationButton, { backgroundColor: theme.primary }]}>
+          <Text style={[styles.vacationButtonText, { color: theme.primaryForeground }]}>Request Vacation</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -19,12 +29,9 @@ export default function VacationCard() {
 
 const styles = StyleSheet.create({
   vacationCard: {
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 8,
     padding: 24,
-    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 1,
@@ -43,18 +50,15 @@ const styles = StyleSheet.create({
   vacationTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000000',
     marginBottom: 8,
     textAlign: 'center',
   },
   vacationSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
     textAlign: 'center',
     marginBottom: 16,
   },
   vacationButton: {
-    backgroundColor: '#000000',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -62,6 +66,5 @@ const styles = StyleSheet.create({
   vacationButtonText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#FFFFFF',
   },
 });
