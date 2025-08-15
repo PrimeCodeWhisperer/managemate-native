@@ -3,7 +3,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { supabase } from '@/supabase';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface CustomHeaderProps {
@@ -28,7 +28,7 @@ export default function CustomHeader({ title }: CustomHeaderProps) {
         styles.headerContainer,
         {
           backgroundColor: Colors[colorScheme ?? 'light'].background,
-          paddingTop: insets.top,
+          paddingTop: insets.top + 40,
           borderBottomColor: Colors[colorScheme ?? 'light'].secondary,
         },
       ]}
@@ -54,7 +54,7 @@ export default function CustomHeader({ title }: CustomHeaderProps) {
           onRequestClose={() => setShowOptionsMenu(false)}
         >
           <Pressable
-            style={styles.modalOverlay}
+            style={[styles.modalOverlay, { paddingTop: insets.top + 40 }]}
             onPress={() => setShowOptionsMenu(false)}
           >
             <View
@@ -109,7 +109,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     justifyContent: 'flex-start',
     alignItems: 'flex-end',
-    paddingTop: Platform.OS === 'ios' ? 100 : 80,
     paddingRight: 20,
   },
   dropdown: {
