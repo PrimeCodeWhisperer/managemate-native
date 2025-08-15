@@ -66,11 +66,12 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.select({ ios: 'padding', android: 'height' })} 
+    <KeyboardAvoidingView
+      behavior={Platform.select({ ios: 'padding', android: 'height' })}
+      keyboardVerticalOffset={Platform.OS === 'android' ? 64 : 0}
       style={styles.keyboardView}
     >
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
