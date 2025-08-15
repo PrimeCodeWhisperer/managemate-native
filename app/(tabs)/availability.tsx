@@ -17,6 +17,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Platform,
 } from 'react-native';
 
 export default function AvailabilityScreen() {
@@ -203,7 +204,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 8,
-    marginBottom: 84
+    paddingBottom: Platform.OS === 'ios' ? 84 : 0
   },
   errorContainer: {
     flex: 1,

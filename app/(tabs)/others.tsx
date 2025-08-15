@@ -8,7 +8,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Alert, Button, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Button, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View, Platform } from 'react-native';
 
 interface MenuItem {
   id: string;
@@ -307,8 +307,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   mainContentContainer: {
-    paddingVertical: 24,
-    paddingBottom: 100, // Account for bottom navigation
+    paddingTop: 24,
+    paddingBottom: Platform.OS === 'ios' ? 100 : 24, // Account for bottom navigation
   },
   profileSection: {
     flexDirection: 'row',

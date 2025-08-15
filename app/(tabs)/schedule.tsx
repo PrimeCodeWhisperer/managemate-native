@@ -10,7 +10,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useShifts } from '@/hooks/useShifts';
 import { addMonths, format, formatISO, getDay, getDaysInMonth, isSameDay, parseISO, startOfMonth, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
-import { Alert, Button, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Button, RefreshControl, ScrollView, StyleSheet, View, Platform } from 'react-native';
 
 export default function ScheduleScreen() {
   const scheme = useColorScheme() ?? 'light';
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 8,
-    paddingBottom: 84,
+    paddingBottom: Platform.OS === 'ios' ? 84 : 0,
   },
   errorContainer: {
     flex: 1,

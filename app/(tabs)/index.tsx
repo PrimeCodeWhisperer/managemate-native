@@ -10,7 +10,7 @@ import { useShifts } from '@/hooks/useShifts';
 import { supabase } from '@/supabase';
 import { Link } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Button, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Button, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View, Platform } from 'react-native';
 
 export default function HomeScreen() {
   const [isClockedIn, setIsClockedIn] = useState(false);
@@ -212,14 +212,14 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingBottom: 84
+    paddingBottom: Platform.OS === 'ios' ? 84 : 0
 
   },
   scrollView: {
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 24,
-    paddingBottom: 64, // Space for bottom tab navigation
+    paddingBottom: Platform.OS === 'ios' ? 64 : 0, // Space for bottom tab navigation
   },
   openShiftsSection: {
     marginBottom: 32,
