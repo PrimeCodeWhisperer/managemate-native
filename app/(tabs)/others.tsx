@@ -8,7 +8,9 @@ import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Alert, Button, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View, Platform } from 'react-native';
+import { Alert, Button, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface MenuItem {
   id: string;
@@ -24,6 +26,9 @@ export default function OthersScreen() {
   const theme = Colors[scheme];
   const { profile, loading, error, refresh } = useProfile();
   const [refreshing, setRefreshing] = React.useState(false);
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
+  const bottomPadding = insets.bottom + tabBarHeight;
 
   const handleSignOut = async () => {
     Alert.alert(
@@ -144,7 +149,7 @@ export default function OthersScreen() {
   if (error) {
     return (
       <ErrorBoundary>
-        <ThemedView style={styles.container}>
+        <ThemedView style={[styles.container, { paddingBottom: bottomPadding }]}>
           <View style={styles.errorContainer}>
             <ThemedText>{error}</ThemedText>
             <Button title="Retry" onPress={refresh} />
@@ -167,13 +172,13 @@ export default function OthersScreen() {
 
   return (
     <ErrorBoundary>
-      <ThemedView style={styles.container}>
+      <ThemedView style={[styles.container, { paddingBottom: bottomPadding }]}>
 
       {/* Main Content */}
       <ScrollView
         style={styles.mainContent}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.mainContentContainer}
+        contentContainerStyle={[styles.mainContentContainer, { paddingBottom: bottomPadding + 24 }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -308,7 +313,6 @@ const styles = StyleSheet.create({
   },
   mainContentContainer: {
     paddingTop: 24,
-    paddingBottom: Platform.OS === 'ios' ? 100 : 24, // Account for bottom navigation
   },
   profileSection: {
     flexDirection: 'row',

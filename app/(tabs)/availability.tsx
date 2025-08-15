@@ -11,7 +11,6 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -19,10 +18,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AvailabilityScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
+  const bottomPadding = insets.bottom + tabBarHeight;
   const {
     weekStart,
     setWeekStart,
@@ -115,7 +119,7 @@ export default function AvailabilityScreen() {
 
   return (
     <ErrorBoundary>
-      <ThemedView style={styles.container}>
+      <ThemedView style={[styles.container, { paddingBottom: bottomPadding }]}>
         <WeekNavigator
           weekStart={weekStart}
           onNavigate={dir => setWeekStart(d => addDays(d, dir === 'prev' ? -7 : 7))}
@@ -204,7 +208,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 8,
-    paddingBottom: Platform.OS === 'ios' ? 84 : 0
   },
   errorContainer: {
     flex: 1,

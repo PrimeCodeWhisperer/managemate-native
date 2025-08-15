@@ -10,11 +10,16 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useShifts } from '@/hooks/useShifts';
 import { addMonths, format, formatISO, getDay, getDaysInMonth, isSameDay, parseISO, startOfMonth, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
-import { Alert, Button, Platform, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Button, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ScheduleScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
+  const bottomPadding = insets.bottom + tabBarHeight;
   const { shifts, error, refresh } = useShifts('upcoming');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
@@ -126,7 +131,7 @@ export default function ScheduleScreen() {
   if (error) {
     return (
       <ErrorBoundary>
-        <ThemedView style={styles.container}>
+        <ThemedView style={[styles.container, { paddingBottom: bottomPadding }]}> 
           <View style={styles.errorContainer}>
             <ThemedText>{error}</ThemedText>
             <Button title="Retry" onPress={refresh} />
@@ -138,9 +143,10 @@ export default function ScheduleScreen() {
 
   return (
     <ErrorBoundary>
-      <ThemedView style={styles.container}>
-        <ScrollView 
+      <ThemedView style={[styles.container, { paddingBottom: bottomPadding }]}> 
+        <ScrollView
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: bottomPadding }}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
@@ -186,7 +192,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 8,
-    paddingBottom: Platform.OS === 'ios' ? 84 : 0,
   },
   errorContainer: {
     flex: 1,

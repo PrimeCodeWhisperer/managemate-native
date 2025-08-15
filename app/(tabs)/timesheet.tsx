@@ -8,10 +8,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { addMonths, format, isSameMonth, parseISO, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
 import { Button, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TimesheetScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
+  const bottomPadding = insets.bottom + tabBarHeight;
+  const summaryHeight = 80;
   const { shifts, error, refresh } = useShifts('past');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
@@ -104,7 +110,7 @@ export default function TimesheetScreen() {
   if (error) {
     return (
       <ErrorBoundary>
-        <ThemedView style={styles.container}>
+        <ThemedView style={[styles.container, { paddingBottom: bottomPadding }]}> 
           <View style={styles.errorContainer}>
             <ThemedText>{error}</ThemedText>
             <Button title="Retry" onPress={refresh} />
@@ -116,7 +122,7 @@ export default function TimesheetScreen() {
 
   return (
     <ErrorBoundary>
-      <ThemedView style={styles.container}>
+      <ThemedView style={[styles.container, { paddingBottom: bottomPadding }]}> 
       {/* Month Navigator */}
       <View style={styles.monthNavigator}>
         <TouchableOpacity 
@@ -144,10 +150,10 @@ export default function TimesheetScreen() {
       </View>
 
       {/* Shifts List */}
-      <ScrollView 
+      <ScrollView
         style={styles.shiftsList}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.shiftsListContent}
+        contentContainerStyle={[styles.shiftsListContent, { paddingBottom: bottomPadding + summaryHeight }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -211,7 +217,17 @@ export default function TimesheetScreen() {
       </ScrollView>
 
       {/* Monthly Hours Summary */}
-      <View style={[styles.monthlySummary, { backgroundColor: theme.background, borderColor: theme.secondary }]}>
+      <View
+        style={[
+          styles.monthlySummary,
+          {
+            backgroundColor: theme.background,
+            borderColor: theme.secondary,
+            bottom: tabBarHeight,
+            paddingBottom: insets.bottom + 12,
+          },
+        ]}
+      >
         <View style={styles.summaryContent}>
           <View style={styles.summaryInfo}>
             <ThemedText style={[styles.summaryLabel, { color: theme.icon }]}>
@@ -293,9 +309,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
-  shiftsListContent: {
-    paddingBottom: 100, // Account for summary section
-  },
+  shiftsListContent: {},
   dateGroup: {
     marginBottom: 8,
   },
@@ -377,7 +391,7 @@ const styles = StyleSheet.create({
     right: 0,
     borderTopWidth: 1,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: 12,
   },
   summaryContent: {
     flexDirection: 'row',
