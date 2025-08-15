@@ -10,7 +10,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useShifts } from '@/hooks/useShifts';
 import { addMonths, format, formatISO, getDay, getDaysInMonth, isSameDay, parseISO, startOfMonth, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Button, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Button, ScrollView, StyleSheet, View } from 'react-native';
 
 export default function ScheduleScreen() {
   const scheme = useColorScheme() ?? 'light';
@@ -167,7 +167,7 @@ export default function ScheduleScreen() {
               </ThemedText>
             </View>
           )}
-          <QuickActionsPanel theme={theme} />
+          <QuickActionsPanel onRequestShift={()=>Alert.alert('Coming Soon', 'Request Shift will be available soon')} onDropShift={()=>Alert.alert('Coming Soon', 'Drop shift option will be available soon')} theme={theme} />
         </ScrollView>
       </ThemedView>
     </ErrorBoundary>

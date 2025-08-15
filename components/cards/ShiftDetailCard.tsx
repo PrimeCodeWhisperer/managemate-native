@@ -79,24 +79,9 @@ export default function ShiftDetailCard({ shift, selectedDate, theme }: Props) {
             </View>
           </View>
         )}
-
-        <View style={styles.shiftDetailRow}>
-          <Ionicons name="person-outline" size={16} color={theme.icon} />
-          <View style={styles.shiftDetailText}>
-            <ThemedText style={styles.shiftDetailTitle}>{shift.role || 'Sales Associate'}</ThemedText>
-            <ThemedText style={[styles.shiftDetailSubtitle, { color: theme.icon }]}> 
-              Floor duty
-            </ThemedText>
-          </View>
-        </View>
       </View>
 
       <View style={styles.shiftActions}>
-        <TouchableOpacity style={[styles.primaryButton, { backgroundColor: theme.primary }]}> 
-          <Text style={[styles.primaryButtonText, { color: theme.primaryForeground }]}> 
-            Clock In
-          </Text>
-        </TouchableOpacity>
         <TouchableOpacity style={[styles.secondaryButton, { borderColor: theme.secondary }]}> 
           <ThemedText style={styles.secondaryButtonText}>View Details</ThemedText>
         </TouchableOpacity>
