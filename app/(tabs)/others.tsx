@@ -8,7 +8,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Alert, Button, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Button, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface MenuItem {
   id: string;
@@ -23,6 +23,7 @@ export default function OthersScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
   const { profile, loading, error, refresh } = useProfile();
+  const [refreshing, setRefreshing] = React.useState(false);
 
   const handleSignOut = async () => {
     Alert.alert(
@@ -153,6 +154,17 @@ export default function OthersScreen() {
     );
   }
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refresh();
+    } catch (error) {
+      console.error('Failed to refresh profile:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <ErrorBoundary>
       <ThemedView style={styles.container}>
@@ -162,6 +174,9 @@ export default function OthersScreen() {
         style={styles.mainContent}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.mainContentContainer}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         {/* Profile Section */}
         {loading ? (

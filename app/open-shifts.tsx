@@ -3,13 +3,14 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useShifts } from '@/hooks/useShifts';
-import React, { useMemo } from 'react';
-import { ActivityIndicator, Button, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { ActivityIndicator, Button, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function OpenShiftsScreen() {
   const { shifts, loading, error, refresh } = useShifts('open');
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
+  const [refreshing, setRefreshing] = useState(false);
 
   const futureShifts = useMemo(() => {
     const today = new Date();
@@ -21,12 +22,26 @@ export default function OpenShiftsScreen() {
     });
   }, [shifts]);
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refresh();
+    } catch (error) {
+      console.error('Failed to refresh open shifts:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <ErrorBoundary>
       <ScrollView
         style={[styles.container, { backgroundColor: theme.background }]}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         {loading ? (
           <ActivityIndicator />

@@ -3,17 +3,18 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { Shift, useShifts } from '@/hooks/useShifts';
 import { Ionicons } from '@expo/vector-icons';
 import { addMonths, format, isSameMonth, parseISO, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useShifts, Shift } from '@/hooks/useShifts';
+import { Button, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function TimesheetScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
-  const { shifts, loading, error, refresh } = useShifts('past');
+  const { shifts, error, refresh } = useShifts('past');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [refreshing, setRefreshing] = useState(false);
 
   const monthShifts = useMemo(() => {
     return shifts.filter(shift => {
@@ -47,6 +48,17 @@ export default function TimesheetScreen() {
 
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => direction === 'prev' ? subMonths(prev, 1) : addMonths(prev, 1));
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refresh();
+    } catch (error) {
+      console.error('Failed to refresh timesheet:', error);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const formatShiftTime = (startTime: string, endTime?: string) => {
@@ -88,17 +100,6 @@ export default function TimesheetScreen() {
       backgroundColor: theme.successBackground,
     };
   };
-  if (loading) {
-    return (
-      <ErrorBoundary>
-        <ThemedView style={styles.container}>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator />
-          </View>
-        </ThemedView>
-      </ErrorBoundary>
-    );
-  }
 
   if (error) {
     return (
@@ -147,6 +148,9 @@ export default function TimesheetScreen() {
         style={styles.shiftsList}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.shiftsListContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         {groupedShifts.length > 0 ? (
           groupedShifts.map(([date, dayShifts]) => (
@@ -166,11 +170,13 @@ export default function TimesheetScreen() {
                     <View style={styles.shiftCardHeader}>
                       <View style={styles.shiftInfo}>
                         <ThemedText style={styles.shiftTitle}>
-                          {shift.role || 'Shift'}
+                          Shift
                         </ThemedText>
+                        {shift.role??(
                         <ThemedText style={[styles.shiftLocation, { color: theme.icon }]}>
-                          {shift.location || 'Store Location'}
+                          {shift.location || 'Employee'}
                         </ThemedText>
+                        )}
                       </View>
                       <View style={[styles.statusBadge, { backgroundColor: shiftStatus.backgroundColor }]}>
                         <Text style={[styles.statusText, { color: shiftStatus.color }]}>
@@ -231,11 +237,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 8,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   errorContainer: {
     flex: 1,

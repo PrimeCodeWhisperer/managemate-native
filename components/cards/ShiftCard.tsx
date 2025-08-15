@@ -1,9 +1,9 @@
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { pickUpOpenShift } from '@/hooks/useShifts';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import React from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Colors } from '@/constants/Colors';
-import { pickUpOpenShift } from '@/hooks/useShifts';
 
 export interface Shift {
   id: string;
