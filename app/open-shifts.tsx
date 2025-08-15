@@ -36,7 +36,7 @@ export default function OpenShiftsScreen() {
             <Button title="Retry" onPress={refresh} />
           </View>
         ) : futureShifts.length > 0 ? (
-          futureShifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)
+          futureShifts.map((shift) => <ShiftCard key={shift.id} shift={shift} onPickUp={refresh} />)
         ) : (
           <Text style={[styles.emptyText, { color: theme.icon }]}>No open shifts</Text>
         )}

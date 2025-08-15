@@ -91,3 +91,29 @@ export function useShifts(type: 'upcoming' | 'past' | 'open' = 'upcoming') {
   return { shifts, loading, error, refresh };
 }
 
+export async function pickUpOpenShift(shiftId: string) {
+  const { data: userRes, error: userErr } = await supabase.auth.getUser();
+  if (userErr) throw userErr;
+  const user = userRes.user;
+  if (!user?.id) {
+    throw new Error('User not authenticated');
+  }
+
+  const { data: shift, error: selectErr } = await supabase
+    .from('open_shifts')
+    .select('date, start_time')
+    .eq('id', shiftId)
+    .single();
+  if (selectErr) throw selectErr;
+
+  const { error: insertErr } = await supabase.from('upcoming_shifts').insert({
+    date: shift.date,
+    start_time: shift.start_time,
+    user_id: user.id,
+  });
+  if (insertErr) throw insertErr;
+
+  const { error: deleteErr } = await supabase.from('open_shifts').delete().eq('id', shiftId);
+  if (deleteErr) throw deleteErr;
+}
+

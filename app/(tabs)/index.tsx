@@ -169,7 +169,7 @@ export default function HomeScreen() {
                 <Button title="Retry" onPress={refresh} />
               </View>
             ) : futureOpenShifts.length > 0 ? (
-               futureOpenShifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)
+               futureOpenShifts.map((shift) => <ShiftCard key={shift.id} shift={shift} onPickUp={refresh} />)
             ) : (
               <EmptyShifts theme={theme} />
             )}
