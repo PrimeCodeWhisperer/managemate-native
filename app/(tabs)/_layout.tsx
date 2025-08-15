@@ -3,6 +3,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import CustomHeader from '@/components/CustomHeader';
 import { HapticTab } from '@/components/HapticTab';
@@ -12,6 +13,8 @@ import { FontAwesome } from '@expo/vector-icons';
 export default function TabLayout() {
   const colorScheme = useColorScheme() ?? 'light';
   const theme = Colors[colorScheme];
+  const insets = useSafeAreaInsets();
+  
   return (
     <Tabs
       screenOptions={{
@@ -25,6 +28,17 @@ export default function TabLayout() {
           backgroundColor: theme.background,
           borderTopColor: theme.secondary,
           borderTopWidth: 1,
+          paddingBottom: Platform.select({
+            ios: Math.max(insets.bottom - 10, 0),
+            android: 5,
+            default: 5,
+          }),
+          paddingTop: 0, // Remove any top padding
+          height: Platform.select({
+            ios: 60 + Math.max(insets.bottom - 10, 0),
+            android: 60+ Math.max(insets.bottom - 5, 0),
+            default: 60,
+          }),
           ...Platform.select({
             ios: {
               position: 'absolute',
@@ -32,10 +46,13 @@ export default function TabLayout() {
             default: {},
           }),
         },
+        tabBarItemStyle: {
+          paddingTop: 8, // Control individual tab item spacing
+          paddingBottom: 0,
+        },
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '500',
-          marginTop: 4,
         },
       }}
     >

@@ -8,10 +8,10 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useProfile } from '@/hooks/useProfile';
 import { useShifts } from '@/hooks/useShifts';
 import { supabase } from '@/supabase';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Link } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Button, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
@@ -147,7 +147,6 @@ export default function HomeScreen() {
             backgroundColor: theme.background,
             justifyContent: 'center',
             alignItems: 'center',
-            paddingBottom: bottomPadding,
           },
         ]}
       >
@@ -158,10 +157,9 @@ export default function HomeScreen() {
 
   return (
     <ErrorBoundary>
-      <View style={[styles.container, { backgroundColor: theme.background, paddingBottom: bottomPadding }]}>
+      <View style={[styles.container, { backgroundColor: theme.background}]}>
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={{ paddingBottom: bottomPadding }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={refresh} />

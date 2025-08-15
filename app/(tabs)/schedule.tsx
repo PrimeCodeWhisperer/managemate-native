@@ -8,10 +8,10 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useShifts } from '@/hooks/useShifts';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { addMonths, format, formatISO, getDay, getDaysInMonth, isSameDay, parseISO, startOfMonth, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
 import { Alert, Button, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ScheduleScreen() {
@@ -131,7 +131,7 @@ export default function ScheduleScreen() {
   if (error) {
     return (
       <ErrorBoundary>
-        <ThemedView style={[styles.container, { paddingBottom: bottomPadding }]}> 
+        <ThemedView style={[styles.container]}> 
           <View style={styles.errorContainer}>
             <ThemedText>{error}</ThemedText>
             <Button title="Retry" onPress={refresh} />
@@ -143,10 +143,9 @@ export default function ScheduleScreen() {
 
   return (
     <ErrorBoundary>
-      <ThemedView style={[styles.container, { paddingBottom: bottomPadding }]}> 
+      <ThemedView style={[styles.container]}> 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: bottomPadding }}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }

@@ -5,10 +5,10 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Shift, useShifts } from '@/hooks/useShifts';
 import { Ionicons } from '@expo/vector-icons';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { addMonths, format, isSameMonth, parseISO, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
 import { Button, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TimesheetScreen() {
@@ -110,7 +110,7 @@ export default function TimesheetScreen() {
   if (error) {
     return (
       <ErrorBoundary>
-        <ThemedView style={[styles.container, { paddingBottom: bottomPadding }]}> 
+        <ThemedView style={[styles.container]}> 
           <View style={styles.errorContainer}>
             <ThemedText>{error}</ThemedText>
             <Button title="Retry" onPress={refresh} />
@@ -122,7 +122,7 @@ export default function TimesheetScreen() {
 
   return (
     <ErrorBoundary>
-      <ThemedView style={[styles.container, { paddingBottom: bottomPadding }]}> 
+      <ThemedView style={[styles.container]}> 
       {/* Month Navigator */}
       <View style={styles.monthNavigator}>
         <TouchableOpacity 
@@ -153,7 +153,7 @@ export default function TimesheetScreen() {
       <ScrollView
         style={styles.shiftsList}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.shiftsListContent, { paddingBottom: bottomPadding + summaryHeight }]}
+        contentContainerStyle={[styles.shiftsListContent]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -224,7 +224,7 @@ export default function TimesheetScreen() {
             backgroundColor: theme.background,
             borderColor: theme.secondary,
             bottom: tabBarHeight,
-            paddingBottom: insets.bottom + 12,
+            paddingBottom: Math.max(insets.bottom-12,0),
           },
         ]}
       >

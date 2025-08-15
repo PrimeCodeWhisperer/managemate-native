@@ -6,6 +6,7 @@ import WeekNavigator from '@/components/navigation/WeekNavigator';
 import { Colors } from '@/constants/Colors';
 import { DayAvailability, useAvailability } from '@/hooks/useAvailability';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { addDays, formatISO } from 'date-fns';
 import React, { useState } from 'react';
 import {
@@ -18,7 +19,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AvailabilityScreen() {
@@ -119,7 +119,7 @@ export default function AvailabilityScreen() {
 
   return (
     <ErrorBoundary>
-      <ThemedView style={[styles.container, { paddingBottom: bottomPadding }]}>
+      <ThemedView style={[styles.container]}>
         <WeekNavigator
           weekStart={weekStart}
           onNavigate={dir => setWeekStart(d => addDays(d, dir === 'prev' ? -7 : 7))}

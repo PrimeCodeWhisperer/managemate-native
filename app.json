@@ -17,7 +17,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.yourcompany.managemate",
+      "package": "com.alexandrupaduraru.managemate",
       "versionCode": 1
     },
     "web": {
@@ -39,6 +39,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "da701397-2b29-475c-a42c-c5320956fa9d"
+      }
     }
   }
 }

@@ -7,9 +7,9 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import { Alert, Button, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface MenuItem {
@@ -149,7 +149,7 @@ export default function OthersScreen() {
   if (error) {
     return (
       <ErrorBoundary>
-        <ThemedView style={[styles.container, { paddingBottom: bottomPadding }]}>
+        <ThemedView style={[styles.container]}>
           <View style={styles.errorContainer}>
             <ThemedText>{error}</ThemedText>
             <Button title="Retry" onPress={refresh} />
@@ -172,7 +172,7 @@ export default function OthersScreen() {
 
   return (
     <ErrorBoundary>
-      <ThemedView style={[styles.container, { paddingBottom: bottomPadding }]}>
+      <ThemedView style={[styles.container]}>
 
       {/* Main Content */}
       <ScrollView
