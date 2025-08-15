@@ -3,6 +3,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
+import { Link } from 'expo-router';
 
 export default function VacationCard() {
   const scheme = useColorScheme() ?? 'light';
@@ -19,9 +20,11 @@ export default function VacationCard() {
         <FontAwesome name="umbrella" size={48} color={theme.muted} style={styles.vacationIcon} />
         <Text style={[styles.vacationTitle, { color: theme.foreground }]}>No upcoming vacations</Text>
         <Text style={[styles.vacationSubtitle, { color: theme.icon }]}>Plan your time off and submit vacation requests</Text>
-        <TouchableOpacity style={[styles.vacationButton, { backgroundColor: theme.primary }]}>
-          <Text style={[styles.vacationButtonText, { color: theme.primaryForeground }]}>Request Vacation</Text>
-        </TouchableOpacity>
+        <Link href="/vacations" asChild>
+          <TouchableOpacity style={[styles.vacationButton, { backgroundColor: theme.primary }]}> 
+            <Text style={[styles.vacationButtonText, { color: theme.primaryForeground }]}>Request Vacation</Text>
+          </TouchableOpacity>
+        </Link>
       </View>
     </View>
   );
