@@ -21,7 +21,7 @@ export default function BackHeader({ title }: BackHeaderProps) {
         styles.headerContainer,
         {
           backgroundColor: Colors[colorScheme ?? 'light'].background,
-          paddingTop: insets.top,
+          paddingTop: insets.top+12,
           borderBottomColor: Colors[colorScheme ?? 'light'].secondary,
         },
       ]}

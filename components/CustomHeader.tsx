@@ -28,7 +28,7 @@ export default function CustomHeader({ title }: CustomHeaderProps) {
         styles.headerContainer,
         {
           backgroundColor: Colors[colorScheme ?? 'light'].background,
-          paddingTop: insets.top + 40,
+          paddingTop: insets.top + 12,
           borderBottomColor: Colors[colorScheme ?? 'light'].secondary,
         },
       ]}
@@ -96,34 +96,5 @@ const styles = StyleSheet.create({
   },
   optionsContainer: {
     marginLeft: 'auto',
-  },
-  optionsButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
-    paddingRight: 20,
-  },
-  dropdown: {
-    borderRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    minWidth: 120,
-  },
-  menuItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  menuText: {
-    fontSize: 16,
   },
 });
