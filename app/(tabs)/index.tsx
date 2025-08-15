@@ -8,18 +8,20 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useProfile } from '@/hooks/useProfile';
 import { useShifts } from '@/hooks/useShifts';
 import { supabase } from '@/supabase';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Link } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Button, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function HomeScreen() {
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [clockStart, setClockStart] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const { profile } = useProfile();
-  
   // Get both upcoming shifts and open shifts
   const {
+    shifts: upcomingShifts, // Rename this
+    loading: upcomingLoading, // Add this
     refresh: refreshUpcoming,
   } = useShifts('upcoming');
   
@@ -109,21 +111,25 @@ export default function HomeScreen() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    return openShifts
-      .filter(shift => {
-        const shiftDate = new Date(shift.date);
-        shiftDate.setHours(0, 0, 0, 0);
-        return shiftDate > today;
-      })
-      .slice(0, 3);
+    return openShifts;
   };
 
   const futureOpenShifts = getFutureOpenShifts();
 
   // Update refresh function to refresh both
-  const refresh = () => {
-    refreshUpcoming();
-    refreshOpen();
+  const refresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refreshUpcoming(),
+        refreshOpen(),
+        loadClockStatusFromDatabase()
+      ]);
+    } catch (error) {
+      console.error('Failed to refresh data:', error);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   // Show loading while retrieving clock status
@@ -138,7 +144,13 @@ export default function HomeScreen() {
   return (
     <ErrorBoundary>
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.scrollView} 
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={refresh} />
+          }
+        >
         {/* Welcome Section */}
         <WelcomeSection displayName={getDisplayName()} />
 
@@ -147,6 +159,8 @@ export default function HomeScreen() {
           isClockedIn={isClockedIn}
           onStatusChange={handleClockStatusChange}
           startTime={clockStart}
+          shifts={upcomingShifts}
+          loading={upcomingLoading}
         />
 
         {/* Open Shifts Section */}
@@ -169,7 +183,7 @@ export default function HomeScreen() {
                 <Button title="Retry" onPress={refresh} />
               </View>
             ) : futureOpenShifts.length > 0 ? (
-               futureOpenShifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)
+               futureOpenShifts.map((shift) => <ShiftCard key={shift.id} shift={shift} onPickUp={refresh} />)
             ) : (
               <EmptyShifts theme={theme} />
             )}

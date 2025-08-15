@@ -10,13 +10,14 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useShifts } from '@/hooks/useShifts';
 import { addMonths, format, formatISO, getDay, getDaysInMonth, isSameDay, parseISO, startOfMonth, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Button, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Button, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 export default function ScheduleScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
-  const { shifts, loading, error, refresh } = useShifts('upcoming');
+  const { shifts, error, refresh } = useShifts('upcoming');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>(
     formatISO(new Date(), { representation: 'date' })
   );
@@ -108,17 +109,19 @@ export default function ScheduleScreen() {
     );
   };
 
-  if (loading) {
-    return (
-      <ErrorBoundary>
-        <ThemedView style={styles.container}>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator />
-          </View>
-        </ThemedView>
-      </ErrorBoundary>
-    );
-  }
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      refresh();
+      setCurrentDate(new Date())
+            setSelectedDate(formatISO(new Date(), { representation: 'date' }))
+
+    } catch (error) {
+      console.error('Failed to refresh schedule:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   if (error) {
     return (
@@ -136,7 +139,12 @@ export default function ScheduleScreen() {
   return (
     <ErrorBoundary>
       <ThemedView style={styles.container}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
           <MonthNavigator
             currentDate={currentDate}
             shiftCount={monthShifts.length}
@@ -179,11 +187,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 8,
     paddingBottom: 84,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   errorContainer: {
     flex: 1,

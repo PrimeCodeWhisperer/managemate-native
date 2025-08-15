@@ -1,8 +1,9 @@
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { pickUpOpenShift } from '@/hooks/useShifts';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Colors } from '@/constants/Colors';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export interface Shift {
   id: string;
@@ -13,7 +14,7 @@ export interface Shift {
   urgent?: boolean;
 }
 
-export default function ShiftCard({ shift }: { shift: Shift }) {
+export default function ShiftCard({ shift, onPickUp }: { shift: Shift; onPickUp?: () => void }) {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
   const shiftDate = parseISO(String(shift.date));
@@ -25,9 +26,23 @@ export default function ShiftCard({ shift }: { shift: Shift }) {
   }
 
   const start = format(parseISO(`2000-01-01T${shift.start_time}`), 'h:mm a');
-  const end = shift.end_time
-    ? format(parseISO(`2000-01-01T${shift.end_time}`), 'h:mm a')
-    : '';
+  const end = shift.end_time ? format(parseISO(`2000-01-01T${shift.end_time}`), 'h:mm a') : '';
+
+  const handlePickUp = async () => {
+    try {
+      await pickUpOpenShift(shift.id);
+      onPickUp?.();
+    } catch (e: any) {
+      Alert.alert('Error', e.message ?? 'Failed to pick up shift');
+    }
+  };
+
+  const confirmPickUp = () => {
+    Alert.alert('Pick Up Shift', 'Are you sure you want to pick up this shift?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Pick Up', onPress: handlePickUp },
+    ]);
+  };
 
   return (
     <View
@@ -52,7 +67,7 @@ export default function ShiftCard({ shift }: { shift: Shift }) {
             {end ? ` - ${end}` : ''}
           </Text>
         </View>
-        <TouchableOpacity style={[styles.pickUpButton, { backgroundColor: theme.primary }]}> 
+        <TouchableOpacity style={[styles.pickUpButton, { backgroundColor: theme.primary }]} onPress={confirmPickUp}>
           <Text style={[styles.pickUpButtonText, { color: theme.primaryForeground }]}>Pick Up</Text>
         </TouchableOpacity>
       </View>

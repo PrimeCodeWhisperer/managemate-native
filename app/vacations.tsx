@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, parseISO } from 'date-fns';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function VacationsScreen() {
   const { vacations, loading, error, refresh, addVacation } = useVacations();
@@ -21,6 +21,7 @@ export default function VacationsScreen() {
   const [showStartPicker, setShowStartPicker] = useState(true);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const submit = async () => {
     try {
@@ -160,6 +161,17 @@ export default function VacationsScreen() {
     );
   }
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refresh();
+    } catch (error) {
+      console.error('Failed to refresh vacations:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <ErrorBoundary>
       <ThemedView style={styles.container}>        
@@ -168,6 +180,9 @@ export default function VacationsScreen() {
             style={styles.vacationsList}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.vacationsListContent}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
           >
             {vacations.length > 0 ? (
               vacations.map(renderVacation)

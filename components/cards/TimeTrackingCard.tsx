@@ -1,25 +1,39 @@
 import ClockButton from '@/components/cards/ClockButton';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { useProfile } from '@/hooks/useProfile';
-import { supabase } from '@/supabase';
+import { Shift } from '@/hooks/useShifts';
 import { FontAwesome } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import { isSameDay, parseISO } from 'date-fns';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 interface Props {
   isClockedIn: boolean;
   onStatusChange: () => Promise<void> | void;
   startTime: number | null;
+  shifts: Shift[]; // Add this prop
+  loading?: boolean; // Add this prop
 }
 
-export default function TimeTrackingCard({ isClockedIn, onStatusChange, startTime }: Props) {
+export default function TimeTrackingCard({ isClockedIn, onStatusChange, startTime, shifts, loading = false }: Props) {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
   const [elapsed, setElapsed] = useState(0);
-  const [hasShiftToday, setHasShiftToday] = useState(false);
-  const [loadingShift, setLoadingShift] = useState(true);
-  const { profile } = useProfile();
+
+  // Use useMemo to check if there's a shift today, similar to schedule component
+  const todayShift = useMemo(() => {
+    if (!shifts.length) return null;
+    
+    const today = new Date();
+    return shifts.find((shift) => {
+      const shiftDate = parseISO(String(shift.date));
+      return isSameDay(shiftDate, today);
+    });
+  }, [shifts]);
+
+  const hasShiftToday = useMemo(() => {
+    return !!todayShift;
+  }, [todayShift]);
 
   useEffect(() => {
     let interval: number | undefined;
@@ -47,45 +61,6 @@ export default function TimeTrackingCard({ isClockedIn, onStatusChange, startTim
     };
   }, [isClockedIn, startTime]);
 
-  // Check if there's a shift scheduled for today
-  useEffect(() => {
-    checkShiftForToday();
-  }, [profile?.id, isClockedIn]); // Added isClockedIn as dependency
-
-  const checkShiftForToday = async () => {
-    if (!profile?.id) {
-      setLoadingShift(false);
-      return;
-    }
-
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      
-      const { data: shift, error } = await supabase
-        .from('upcoming_shifts')
-        .select('id')
-        .eq('user_id', profile.id)
-        .eq('date', today)
-        .maybeSingle();
-
-      if (error) throw error;
-      
-      setHasShiftToday(!!shift);
-    } catch (e) {
-      console.error('Failed to check shift for today:', e);
-      setHasShiftToday(false);
-    } finally {
-      setLoadingShift(false);
-    }
-  };
-
-  // Create a wrapper function that also refreshes shift status
-  const handleStatusChange = async () => {
-    await onStatusChange();
-    // Refresh shift status after clock operations
-    await checkShiftForToday();
-  };
-
   const formatDuration = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const hours = Math.floor(totalSeconds / 3600);
@@ -96,7 +71,7 @@ export default function TimeTrackingCard({ isClockedIn, onStatusChange, startTim
   };
 
   // Don't render the card if loading or no shift today (unless already clocked in)
-  if (loadingShift) {
+  if (loading) {
     return (
       <View style={styles.clockSection}>
         <View
@@ -152,7 +127,7 @@ export default function TimeTrackingCard({ isClockedIn, onStatusChange, startTim
         )}
         <ClockButton
           isClockedIn={isClockedIn}
-          onStatusChange={handleStatusChange}
+          onStatusChange={onStatusChange}
           elapsedTime={elapsed}
           hasShiftToday={hasShiftToday}
         />

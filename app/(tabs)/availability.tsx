@@ -1,5 +1,4 @@
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import DayAvailabilityCard from '@/components/cards/DayAvailabilityCard';
 import AvailabilityModal from '@/components/forms/AvailabilityModal';
@@ -12,6 +11,7 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -30,10 +30,7 @@ export default function AvailabilityScreen() {
     timeMap,
     setTimeMap,
     days,
-    loading,
-    error,
     load,
-    save,
     saveAvailability,
     submitting,
   } = useAvailability();
@@ -42,6 +39,7 @@ export default function AvailabilityScreen() {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [tempAvailability, setTempAvailability] = useState<DayAvailability>({ available: false });
   const [supabaseLoading, setSupabaseLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const showSaveConfirmation = () => {
     Alert.alert(
@@ -64,7 +62,7 @@ export default function AvailabilityScreen() {
     setSupabaseLoading(true);
     try {
       await saveAvailability(true);
-    } catch (error) {
+    } catch {
       // Error is already handled in saveAvailability
     } finally {
       setSupabaseLoading(false);
@@ -103,47 +101,16 @@ export default function AvailabilityScreen() {
     setShowModal(false);
   };
 
-  // Also add debugging to see what data is in timeMap before saving
-  const debugTimeMapBeforeSave = () => {
-
-    Object.entries(timeMap).forEach(([dateStr, dayAvail]) => {
-      const dayIndex = days.findIndex(day => formatISO(day, { representation: 'date' }) === dateStr);
-      const dayName = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][dayIndex];
-
-    });
-
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await load();
+    } catch (error) {
+      console.error('Failed to refresh availability:', error);
+    } finally {
+      setRefreshing(false);
+    }
   };
-
-  if (loading || supabaseLoading) {
-    return (
-      <ErrorBoundary>
-        <ThemedView style={styles.container}>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.primary} />
-            <ThemedText style={styles.loadingText}>Loading availability...</ThemedText>
-          </View>
-        </ThemedView>
-      </ErrorBoundary>
-    );
-  }
-
-  if (error) {
-    return (
-      <ErrorBoundary>
-        <ThemedView style={styles.container}>
-          <View style={styles.errorContainer}>
-            <ThemedText style={styles.errorText}>{error}</ThemedText>
-            <TouchableOpacity
-              style={[styles.retryButton, { backgroundColor: theme.primary }]}
-              onPress={load}
-            >
-              <Text style={[styles.buttonText, { color: theme.primaryForeground }]}>Retry</Text>
-            </TouchableOpacity>
-          </View>
-        </ThemedView>
-      </ErrorBoundary>
-    );
-  }
 
   return (
     <ErrorBoundary>
@@ -159,6 +126,9 @@ export default function AvailabilityScreen() {
             style={styles.daysList}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.daysListContent}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
           >
             {days.map(day => {
               const dateStr = formatISO(day, { representation: 'date' });
@@ -234,15 +204,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 8,
     marginBottom: 84
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-  },
-  loadingText: {
-    fontSize: 16,
   },
   errorContainer: {
     flex: 1,
