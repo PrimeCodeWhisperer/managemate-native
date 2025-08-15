@@ -18,6 +18,7 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'arrow.left': 'arrow-back',
   // Added for ManageMate tabs
   'calendar': 'calendar-today',
   'clock': 'schedule',

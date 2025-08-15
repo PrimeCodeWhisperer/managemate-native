@@ -10,6 +10,7 @@ import { useShifts } from '@/hooks/useShifts';
 import { supabase } from '@/supabase';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Link } from 'expo-router';
 
 export default function HomeScreen() {
   const [isClockedIn, setIsClockedIn] = useState(false);
@@ -152,9 +153,11 @@ export default function HomeScreen() {
         <View style={styles.openShiftsSection}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.foreground }]}>Open Shifts</Text>
-            <TouchableOpacity>
-              <Text style={[styles.viewAllButton, { color: theme.foreground }]}>View All</Text>
-            </TouchableOpacity>
+            <Link href="/open-shifts" asChild>
+              <TouchableOpacity>
+                <Text style={[styles.viewAllButton, { color: theme.foreground }]}>View All</Text>
+              </TouchableOpacity>
+            </Link>
           </View>
 
           <View style={styles.shiftsContainer}>
@@ -177,9 +180,11 @@ export default function HomeScreen() {
         <View style={styles.vacationsSection}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.foreground }]}>Vacations</Text>
-            <TouchableOpacity>
-              <Text style={[styles.viewAllButton, { color: theme.foreground }]}>Request</Text>
-            </TouchableOpacity>
+            <Link href="/vacations" asChild>
+              <TouchableOpacity>
+                <Text style={[styles.viewAllButton, { color: theme.foreground }]}>Request</Text>
+              </TouchableOpacity>
+            </Link>
           </View>
 
           <VacationCard />
