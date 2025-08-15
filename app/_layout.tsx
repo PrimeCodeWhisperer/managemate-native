@@ -8,7 +8,7 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { supabase } from '@/supabase';
 import '../global.css';
-import CustomHeader from '@/components/CustomHeader';
+import BackHeader from '@/components/BackHeader';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -61,8 +61,8 @@ function AuthGate() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerTitle: 'Login' }} />
-        <Stack.Screen name="open-shifts" options={{ header: () => <CustomHeader title="Open Shifts" /> }} />
-        <Stack.Screen name="vacations" options={{ header: () => <CustomHeader title="Vacations" /> }} />
+        <Stack.Screen name="open-shifts" options={{ header: () => <BackHeader title="Open Shifts" /> }} />
+        <Stack.Screen name="vacations" options={{ header: () => <BackHeader title="Vacations" /> }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
