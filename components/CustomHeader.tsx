@@ -1,10 +1,9 @@
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { supabase } from '@/supabase';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Modal, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface CustomHeaderProps {
@@ -40,7 +39,7 @@ export default function CustomHeader({ title }: CustomHeaderProps) {
         </Text>
       )}
       
-      <View style={styles.optionsContainer}>
+      {/* <View style={styles.optionsContainer}>
         <TouchableOpacity
           style={[styles.optionsButton, { backgroundColor: Colors[colorScheme ?? 'light'].secondary }]}
           onPress={() => setShowOptionsMenu(true)}
@@ -75,7 +74,7 @@ export default function CustomHeader({ title }: CustomHeaderProps) {
             </View>
           </Pressable>
         </Modal>
-      </View>
+      </View> */}
     </View>
   );
 }
@@ -92,6 +91,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
   },
   optionsContainer: {
     marginLeft: 'auto',

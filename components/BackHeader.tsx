@@ -1,6 +1,6 @@
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -26,20 +26,24 @@ export default function BackHeader({ title }: BackHeaderProps) {
         },
       ]}
     >
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+      >
+        <Ionicons
+          name="chevron-back"
+          size={24}
+          color={Colors[colorScheme ?? 'light'].text}
+        />
+      </TouchableOpacity>
+
       {title && (
         <Text style={[styles.headerTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
           {title}
         </Text>
       )}
 
-      <View style={styles.backContainer}>
-        <TouchableOpacity
-          style={[styles.backButton, { backgroundColor: Colors[colorScheme ?? 'light'].secondary }]}
-          onPress={() => router.back()}
-        >
-          <IconSymbol size={20} name="arrow.left" color={Colors[colorScheme ?? 'light'].icon} />
-        </TouchableOpacity>
-      </View>
+      <View style={styles.placeholder} />
     </View>
   );
 }
@@ -56,9 +60,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '600',
-  },
-  backContainer: {
-    marginLeft: 'auto',
+    flex: 1,
+    textAlign: 'center',
   },
   backButton: {
     width: 32,
@@ -66,5 +69,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  placeholder: {
+    width: 32,
+    height: 32,
+  },
+  backContainer: {
+    marginLeft: 'auto',
   },
 });

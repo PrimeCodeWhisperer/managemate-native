@@ -27,9 +27,9 @@ export function useVacations() {
       }
 
       const { data, error } = await supabase
-        .from('vacations')
+        .from('vacations_requests')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('employee_id', user.id)
         .order('start_date', { ascending: true });
       if (error) throw error;
       vacationsCache = data ?? [];
@@ -55,8 +55,8 @@ export function useVacations() {
         throw new Error('User not authenticated');
       }
       const { error } = await supabase
-        .from('vacations')
-        .insert({ user_id: user.id, start_date, end_date });
+        .from('vacations_requests')
+        .insert({ employee_id: user.id, start_date, end_date });
       if (error) throw error;
       refresh();
     },
