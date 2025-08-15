@@ -5,10 +5,10 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import 'react-native-reanimated';
 
+import BackHeader from '@/components/BackHeader';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { supabase } from '@/supabase';
 import '../global.css';
-import BackHeader from '@/components/BackHeader';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
