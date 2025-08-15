@@ -23,7 +23,7 @@ export function ThemedText({
   return (
     <Text
       style={[
-        { color },
+        { color, flexShrink: 1, flexWrap: 'wrap' },
         type === 'default' ? styles.default : undefined,
         type === 'title' ? styles.title : undefined,
         type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,

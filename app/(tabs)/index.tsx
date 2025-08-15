@@ -10,7 +10,9 @@ import { useShifts } from '@/hooks/useShifts';
 import { supabase } from '@/supabase';
 import { Link } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Button, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Button, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const [isClockedIn, setIsClockedIn] = useState(false);
@@ -34,6 +36,9 @@ export default function HomeScreen() {
   
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
+  const bottomPadding = insets.bottom + tabBarHeight;
 
   // Load clock status from database only
   useEffect(() => {
@@ -135,7 +140,17 @@ export default function HomeScreen() {
   // Show loading while retrieving clock status
   if (isLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]}>
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: theme.background,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingBottom: bottomPadding,
+          },
+        ]}
+      >
         <ActivityIndicator size="large" color={theme.foreground} />
       </View>
     );
@@ -143,9 +158,10 @@ export default function HomeScreen() {
 
   return (
     <ErrorBoundary>
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <ScrollView 
-          style={styles.scrollView} 
+      <View style={[styles.container, { backgroundColor: theme.background, paddingBottom: bottomPadding }]}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={{ paddingBottom: bottomPadding }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={refresh} />
@@ -212,14 +228,11 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingBottom: Platform.OS === 'ios' ? 84 : 0
-
   },
   scrollView: {
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 24,
-    paddingBottom: Platform.OS === 'ios' ? 64 : 0, // Space for bottom tab navigation
   },
   openShiftsSection: {
     marginBottom: 32,
