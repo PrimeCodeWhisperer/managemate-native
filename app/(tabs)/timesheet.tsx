@@ -17,7 +17,11 @@ export default function TimesheetScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const bottomPadding = insets.bottom + tabBarHeight;
-  const summaryHeight = 80;
+  
+  // Calculate monthly summary container height
+  const summaryContainerHeight = 12 + 44 + 12 + 1; // paddingVertical(12) + minHeight(44) + paddingVertical(12) + borderTopWidth(1)
+  const scrollBottomMargin = summaryContainerHeight + tabBarHeight;
+  
   const { shifts, error, refresh } = useShifts('past');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
@@ -153,7 +157,9 @@ export default function TimesheetScreen() {
       <ScrollView
         style={styles.shiftsList}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.shiftsListContent]}
+        contentContainerStyle={{
+          paddingBottom: scrollBottomMargin + 16, // Extra padding for visual breathing room
+        }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -224,7 +230,6 @@ export default function TimesheetScreen() {
             backgroundColor: theme.background,
             borderColor: theme.secondary,
             bottom: tabBarHeight,
-            paddingBottom: Math.max(insets.bottom-12,0),
           },
         ]}
       >
@@ -237,8 +242,16 @@ export default function TimesheetScreen() {
               {Math.round(totalHours)} hours
             </ThemedText>
           </View>
-          <TouchableOpacity style={[styles.exportButton, { backgroundColor: theme.primary }]}>
-            <Text style={[styles.exportButtonText, { color: theme.primaryForeground }]}> 
+          <TouchableOpacity 
+            style={[styles.exportButton, { backgroundColor: theme.primary }]}
+            accessible={true}
+            accessibilityLabel="Export timesheet as PDF"
+          >
+            <Text 
+              style={[styles.exportButtonText, { color: theme.primaryForeground }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
+            > 
               Export PDF
             </Text>
           </TouchableOpacity>
@@ -309,7 +322,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
-  shiftsListContent: {},
   dateGroup: {
     marginBottom: 8,
   },
@@ -391,31 +403,41 @@ const styles = StyleSheet.create({
     right: 0,
     borderTopWidth: 1,
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingVertical: 12,
   },
   summaryContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12, // Add gap for better spacing
   },
   summaryInfo: {
     flex: 1,
+    minWidth: 0, // Allow text to shrink
   },
   summaryLabel: {
     fontSize: 14,
+    flexShrink: 1,
   },
   summaryValue: {
     fontSize: 20,
     fontWeight: '600',
     marginTop: 2,
+    flexShrink: 1,
   },
   exportButton: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderRadius: 8,
+    minHeight: 44, // Ensure minimum touch target size
+    minWidth: 100, // Ensure minimum width
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0, // Don't shrink the button
   },
   exportButtonText: {
     fontSize: 14,
     fontWeight: '500',
+    textAlign: 'center',
   },
 });

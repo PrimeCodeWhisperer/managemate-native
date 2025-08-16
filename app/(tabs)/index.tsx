@@ -1,4 +1,5 @@
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { ThemedView } from '@/components/ThemedView';
 import ShiftCard from '@/components/cards/ShiftCard';
 import TimeTrackingCard from '@/components/cards/TimeTrackingCard';
 import VacationCard from '@/components/cards/VacationCard';
@@ -10,7 +11,7 @@ import { useShifts } from '@/hooks/useShifts';
 import { supabase } from '@/supabase';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Link } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Button, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -40,12 +41,7 @@ export default function HomeScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const bottomPadding = insets.bottom + tabBarHeight;
 
-  // Load clock status from database only
-  useEffect(() => {
-    loadClockStatusFromDatabase();
-  });
-
-  const loadClockStatusFromDatabase = async () => {
+  const loadClockStatusFromDatabase = useCallback(async () => {
     if (!profile?.id) {
       setIsLoading(false);
       return;
@@ -82,7 +78,12 @@ export default function HomeScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [profile?.id]);
+
+  // Load clock status from database only
+  useEffect(() => {
+    loadClockStatusFromDatabase();
+  }, [loadClockStatusFromDatabase]);
 
   const handleClockStatusChange = async () => {
     try {
@@ -157,10 +158,12 @@ export default function HomeScreen() {
 
   return (
     <ErrorBoundary>
-      <View style={[styles.container, { backgroundColor: theme.background}]}>
+      <ThemedView style={[styles.container, { backgroundColor: theme.background},]}>
         <ScrollView
-          style={styles.scrollView}
+          style={[styles.scrollView]}
+          contentContainerStyle={{paddingBottom: bottomPadding + 24}}
           showsVerticalScrollIndicator={false}
+          
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={refresh} />
           }
@@ -205,7 +208,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Vacations Section */}
-        <View style={styles.vacationsSection}>
+        <View >
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.foreground }]}>Vacations</Text>
             <Link href="/vacations" asChild>
@@ -218,7 +221,7 @@ export default function HomeScreen() {
           <VacationCard />
         </View>
         </ScrollView>
-      </View>
+      </ThemedView>
     </ErrorBoundary>
   );
 }
@@ -274,9 +277,6 @@ const styles = StyleSheet.create({
   emptyShiftsSubtitle: {
     fontSize: 14,
     textAlign: 'center',
-  },
-  vacationsSection: {
-    marginBottom: 16,
   },
 });
 

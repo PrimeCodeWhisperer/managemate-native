@@ -3,7 +3,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/supabase';
 import { FontAwesome } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface Props {
@@ -20,34 +20,35 @@ export default function ClockButton({ isClockedIn, onStatusChange, elapsedTime, 
   const theme = Colors[scheme];
   const { profile } = useProfile();
 
-  // Load current shift ID when component mounts if clocked in
-  useEffect(() => {
-    if (isClockedIn && !currentShiftId) {
-      loadCurrentShift();
-    }
-  }, [isClockedIn]);
-
-  const loadCurrentShift = async () => {
+  const loadCurrentShift = useCallback(async () => {
     try {
       const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
       
-      // Check if there's an active shift for today
+      // Check if there's an active shift for today in past_shifts (this indicates clocked in)
       const { data: activeShift, error } = await supabase
-        .from('upcoming_shifts')
-        .select('id')
+        .from('past_shifts')
+        .select('shift_id')
         .eq('user_id', profile?.id)
         .eq('date', today)
+        .is('end_time', null)
         .maybeSingle();
 
       if (error) throw error;
       
       if (activeShift) {
-        setCurrentShiftId(activeShift.id);
+        setCurrentShiftId(activeShift.shift_id);
       }
     } catch (e: any) {
       console.error('Failed to load current shift:', e);
     }
-  };
+  }, [profile?.id]);
+
+  // Load current shift ID when component mounts if clocked in
+  useEffect(() => {
+    if (isClockedIn && !currentShiftId) {
+      loadCurrentShift();
+    }
+  }, [isClockedIn, currentShiftId, loadCurrentShift]);
 
   const handleClockIn = async () => {
     if (!profile?.id) {
@@ -77,14 +78,6 @@ export default function ClockButton({ isClockedIn, onStatusChange, elapsedTime, 
 
       if (shiftError) throw shiftError;
 
-      // Update existing shift with clock-in time
-      const { error: updateError } = await supabase
-        .from('upcoming_shifts')
-        .update({ clockin_time: currentTime })
-        .eq('id', existingShift.id);
-
-      if (updateError) throw updateError;
-
       // Create past_shifts record linked to the upcoming shift
       const { error: pastShiftError } = await supabase
         .from('past_shifts')
@@ -100,7 +93,8 @@ export default function ClockButton({ isClockedIn, onStatusChange, elapsedTime, 
       setCurrentShiftId(existingShift.id);
       await onStatusChange();
     } catch (e: any) {
-      Alert.alert('Error, Failed to clock in');
+      console.error('Failed to clock in:', e);
+      Alert.alert('Error', e.message ?? 'Failed to clock in');
     } finally {
       setLoading(false);
     }
@@ -117,14 +111,6 @@ export default function ClockButton({ isClockedIn, onStatusChange, elapsedTime, 
 
     try {
       setLoading(true);
-
-      // Update the upcoming shift with clock-out time
-      const { error: shiftError } = await supabase
-        .from('upcoming_shifts')
-        .update({ clockout_time: currentTime })
-        .eq('id', currentShiftId);
-
-      if (shiftError) throw shiftError;
 
       // Update the past_shifts record with end time
       const { error: pastShiftError } = await supabase

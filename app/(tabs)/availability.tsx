@@ -27,6 +27,12 @@ export default function AvailabilityScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const bottomPadding = insets.bottom + tabBarHeight;
+  const topPadding = insets.top;
+  
+  // Calculate button container height (padding + button height + border)
+  const buttonContainerHeight = 12 + 48 + 12 + 1; // paddingVertical(12) + minHeight(48) + paddingVertical(12) + borderTopWidth(1)
+  const scrollBottomMargin = buttonContainerHeight + tabBarHeight;
+
   const {
     weekStart,
     setWeekStart,
@@ -78,8 +84,6 @@ export default function AvailabilityScreen() {
     const dateStr = formatISO(day, { representation: 'date' });
     const dayAvailability = timeMap[dateStr] || { available: false };
 
-
-
     setSelectedDay(day);
     setTempAvailability(dayAvailability);
     setShowModal(true);
@@ -89,17 +93,11 @@ export default function AvailabilityScreen() {
     if (!selectedDay) return;
     const dateStr = formatISO(selectedDay, { representation: 'date' });
 
-
-
-
-
     // Create a proper DayAvailability object
     const updatedAvailability: DayAvailability = {
       available: tempAvailability.available,
       timeSlots: tempAvailability.timeSlots || [],
     };
-
-
 
     setMap(prev => ({ ...prev, [dateStr]: updatedAvailability.available }));
     setTimeMap(prev => ({ ...prev, [dateStr]: updatedAvailability }));
@@ -128,9 +126,11 @@ export default function AvailabilityScreen() {
 
         <View style={styles.content}>
           <ScrollView
-            style={styles.daysList}
+            style={[styles.daysList]}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.daysListContent}
+            contentContainerStyle={[{ 
+              paddingBottom: scrollBottomMargin + 16, // Extra padding for visual breathing room
+            }]}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
@@ -138,9 +138,6 @@ export default function AvailabilityScreen() {
             {days.map(day => {
               const dateStr = formatISO(day, { representation: 'date' });
               const availability = timeMap[dateStr] || { available: !!map[dateStr] };
-
-              // Log the availability data to see what we have
-
 
               return (
                 <DayAvailabilityCard
@@ -154,7 +151,7 @@ export default function AvailabilityScreen() {
             })}
           </ScrollView>
 
-          <View style={[styles.buttonContainer, { backgroundColor: theme.card }]}>
+          <View style={[styles.buttonContainer, { backgroundColor: theme.card, bottom: tabBarHeight}]}>
             <TouchableOpacity
               style={[
                 styles.submitButton,
@@ -167,7 +164,13 @@ export default function AvailabilityScreen() {
               {(supabaseLoading || submitting) ? (
                 <ActivityIndicator color={theme.primaryForeground} size="small" />
               ) : (
-                <Text style={[styles.buttonText, { color: theme.primaryForeground }]}>Submit Availability</Text>
+                <Text 
+                  style={[styles.buttonText, { color: theme.primaryForeground }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit={true}
+                >
+                  Submit Availability
+                </Text>
               )}
             </TouchableOpacity>
           </View>
@@ -178,12 +181,8 @@ export default function AvailabilityScreen() {
           selectedDay={selectedDay}
           availability={tempAvailability}
           setAvailability={(newAvailability) => {
-          // Log each property to see what the modal is providing
-          const modalData = newAvailability as any;
-
-
-
-
+            // Log each property to see what the modal is providing
+            const modalData = newAvailability as any;
 
             // Check for any other time-related properties
             Object.keys(modalData).forEach(key => {
@@ -229,19 +228,19 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
-  daysListContent: {
-    paddingBottom: 16,
-  },
   content: {
     flex: 1,
   },
   buttonContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0, 0, 0, 0.1)',
-    flexDirection: 'column',
-    gap: 12,
+
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   saveButton: {
     paddingVertical: 16,
@@ -250,10 +249,12 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     paddingVertical: 16,
+    paddingHorizontal: 24,
     borderRadius: 12,
     alignItems: 'center',
-    flexDirection: 'row',
     justifyContent: 'center',
+    flexDirection: 'row',
+    minHeight: 48, // Ensure minimum touch target size
   },
   debugButton: {
     paddingVertical: 16,
@@ -268,5 +269,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: '600',
+    textAlign: 'center',
+    flexShrink: 1, // Allow text to shrink if needed
   },
 });

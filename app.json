@@ -8,8 +8,11 @@
     "scheme": "managematenative",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "main": "expo-router/entry",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.alexandrupaduraru.managemate",
+      "jsEngine": "hermes"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +21,8 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.alexandrupaduraru.managemate",
-      "versionCode": 1
+      "versionCode": 1,
+      "jsEngine": "hermes"
     },
     "web": {
       "bundler": "metro",
@@ -41,7 +45,9 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {},
+      "router": {
+        "origin": false
+      },
       "eas": {
         "projectId": "da701397-2b29-475c-a42c-c5320956fa9d"
       }

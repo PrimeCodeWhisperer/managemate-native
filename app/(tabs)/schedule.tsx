@@ -146,6 +146,7 @@ export default function ScheduleScreen() {
       <ThemedView style={[styles.container]}> 
         <ScrollView
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{paddingBottom: bottomPadding + 24}}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }

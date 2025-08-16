@@ -40,10 +40,8 @@ export default function TabLayout() {
             default: 60,
           }),
           ...Platform.select({
-            ios: {
-              position: 'absolute',
-            },
-            default: {},
+            default: {              position: 'absolute',
+},
           }),
         },
         tabBarItemStyle: {
