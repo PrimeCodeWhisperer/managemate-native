@@ -162,7 +162,6 @@ export function useAvailability() {
 
       
       
-      console.log("Week key: ",weekKey )
       // Use delete + insert approach for consistency with Flutter
       await supabase
         .from('availabilities')

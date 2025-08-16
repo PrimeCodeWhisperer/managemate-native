@@ -64,7 +64,6 @@ export function useShifts(type: 'upcoming' | 'past' | 'open' = 'upcoming') {
           base = base.order('date', { ascending: false }).order('end_time', { ascending: false });
         }
         const { data: shiftsData, error } = await base;
-        if (type === 'upcoming') console.log(shiftsData)
         if (error) throw error;
         data = shiftsData ?? [];
       }
