@@ -6,6 +6,7 @@ import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function LoginScreen() {
   const scheme = useColorScheme() ?? 'light';
@@ -15,6 +16,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const insets=useSafeAreaInsets()
 
   const signIn = async () => {
     try {
@@ -72,7 +74,7 @@ export default function LoginScreen() {
       style={styles.keyboardView}
     >
       <ScrollView
-        style={styles.scrollView}
+        style={[styles.scrollView, { backgroundColor: theme.background }]}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -82,19 +84,8 @@ export default function LoginScreen() {
       >
         <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
           
-          {/* Logo Section */}
-          <View style={styles.logoSection}>
-            <View style={[styles.logoIcon, { backgroundColor: theme.primary }]}>
-              <Ionicons name="calendar" size={24} color={theme.primaryForeground} />
-            </View>
-            <ThemedText style={styles.appTitle}>Managemate</ThemedText>
-            <Text style={[styles.appSubtitle, { color: theme.icon }]}>
-              Smart Shift Scheduling
-            </Text>
-          </View>
-
           {/* Login Form */}
-          <View style={styles.loginForm}>
+          <View style={[styles.loginForm,{paddingTop:insets.top}]}>
             
             {/* Welcome Header */}
             <View style={styles.welcomeHeader}>
@@ -173,14 +164,14 @@ export default function LoginScreen() {
             </Pressable>
 
             {/* Divider */}
-            <View style={styles.divider}>
+            {/* <View style={styles.divider}>
               <View style={[styles.dividerLine, { backgroundColor: theme.secondary }]} />
               <Text style={[styles.dividerText, { color: theme.icon }]}>or</Text>
               <View style={[styles.dividerLine, { backgroundColor: theme.secondary }]} />
-            </View>
+            </View> */}
 
             {/* Google Sign In */}
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={signInWithGoogle}
               style={[styles.googleButton, { borderColor: theme.secondary, backgroundColor: theme.background }]}
             >
@@ -188,7 +179,7 @@ export default function LoginScreen() {
               <Text style={[styles.googleButtonText, { color: theme.foreground }]}>
                 Continue with Google
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           {/* Sign Up Link */}
@@ -218,10 +209,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+        justifyContent: 'center',
+
     flexGrow: 1,
   },
   container: {
     flex: 1,
+        justifyContent: 'center', // Centers vertically
+
     paddingHorizontal: 24,
     paddingVertical: 32,
     minHeight: '100%',
@@ -251,13 +246,15 @@ const styles = StyleSheet.create({
   loginForm: {
     flex: 1,
     gap: 24,
+        width: '100%',
+
   },
   welcomeHeader: {
     alignItems: 'center',
-    marginBottom: 8,
   },
   welcomeTitle: {
-    fontSize: 24,
+    paddingTop:12,
+    fontSize: 32,
     fontWeight: 'bold',
     marginBottom: 8,
   },
