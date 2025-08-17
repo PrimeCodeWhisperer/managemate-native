@@ -8,7 +8,6 @@ import 'react-native-reanimated';
 import BackHeader from '@/components/BackHeader';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { supabase } from '@/supabase';
-import '../global.css';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
