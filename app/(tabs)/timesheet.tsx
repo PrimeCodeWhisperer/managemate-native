@@ -5,22 +5,13 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Shift, useShifts } from '@/hooks/useShifts';
 import { Ionicons } from '@expo/vector-icons';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { addMonths, format, isSameMonth, parseISO, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
 import { Button, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TimesheetScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
-  const insets = useSafeAreaInsets();
-  const tabBarHeight = useBottomTabBarHeight();
-  const bottomPadding = insets.bottom + tabBarHeight;
-  
-  // Calculate monthly summary container height
-  const summaryContainerHeight = 12 + 44 + 12 + 1; // paddingVertical(12) + minHeight(44) + paddingVertical(12) + borderTopWidth(1)
-  const scrollBottomMargin = summaryContainerHeight + tabBarHeight;
   
   const { shifts, error, refresh } = useShifts('past');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -157,9 +148,6 @@ export default function TimesheetScreen() {
       <ScrollView
         style={styles.shiftsList}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingBottom: scrollBottomMargin + 16, // Extra padding for visual breathing room
-        }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -229,7 +217,6 @@ export default function TimesheetScreen() {
           {
             backgroundColor: theme.background,
             borderColor: theme.secondary,
-            bottom: tabBarHeight,
           },
         ]}
       >

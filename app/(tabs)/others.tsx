@@ -7,10 +7,8 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import { Alert, Button, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface MenuItem {
   id: string;
@@ -26,9 +24,6 @@ export default function OthersScreen() {
   const theme = Colors[scheme];
   const { profile, loading, error, refresh } = useProfile();
   const [refreshing, setRefreshing] = React.useState(false);
-  const insets = useSafeAreaInsets();
-  const tabBarHeight = useBottomTabBarHeight();
-  const bottomPadding = insets.bottom + tabBarHeight;
 
   const handleSignOut = async () => {
     Alert.alert(
@@ -178,7 +173,6 @@ export default function OthersScreen() {
       <ScrollView
         style={styles.mainContent}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.mainContentContainer, { paddingBottom: bottomPadding + 24 }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

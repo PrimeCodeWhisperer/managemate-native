@@ -9,11 +9,9 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useProfile } from '@/hooks/useProfile';
 import { useShifts } from '@/hooks/useShifts';
 import { supabase } from '@/supabase';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Link } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Button, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const [isClockedIn, setIsClockedIn] = useState(false);
@@ -37,9 +35,6 @@ export default function HomeScreen() {
   
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
-  const insets = useSafeAreaInsets();
-  const tabBarHeight = useBottomTabBarHeight();
-  const bottomPadding = insets.bottom + tabBarHeight;
 
   const loadClockStatusFromDatabase = useCallback(async () => {
     if (!profile?.id) {
@@ -161,7 +156,6 @@ export default function HomeScreen() {
       <ThemedView style={[styles.container, { backgroundColor: theme.background},]}>
         <ScrollView
           style={[styles.scrollView]}
-          contentContainerStyle={{paddingBottom: bottomPadding + 24}}
           showsVerticalScrollIndicator={false}
           
           refreshControl={

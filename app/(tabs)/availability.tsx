@@ -6,7 +6,6 @@ import WeekNavigator from '@/components/navigation/WeekNavigator';
 import { Colors } from '@/constants/Colors';
 import { DayAvailability, useAvailability } from '@/hooks/useAvailability';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { addDays, formatISO } from 'date-fns';
 import React, { useState } from 'react';
 import {
@@ -19,20 +18,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AvailabilityScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
-  const insets = useSafeAreaInsets();
-  const tabBarHeight = useBottomTabBarHeight();
-  const bottomPadding = insets.bottom + tabBarHeight;
-  const topPadding = insets.top;
   
-  // Calculate button container height (padding + button height + border)
-  const buttonContainerHeight = 12 + 48 + 12 + 1; // paddingVertical(12) + minHeight(48) + paddingVertical(12) + borderTopWidth(1)
-  const scrollBottomMargin = buttonContainerHeight + tabBarHeight;
-
   const {
     weekStart,
     setWeekStart,
@@ -128,9 +118,6 @@ export default function AvailabilityScreen() {
           <ScrollView
             style={[styles.daysList]}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={[{ 
-              paddingBottom: scrollBottomMargin + 16, // Extra padding for visual breathing room
-            }]}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
@@ -151,7 +138,7 @@ export default function AvailabilityScreen() {
             })}
           </ScrollView>
 
-          <View style={[styles.buttonContainer, { backgroundColor: theme.card, bottom: tabBarHeight}]}>
+          <View style={[styles.buttonContainer, { backgroundColor: theme.card}]}>
             <TouchableOpacity
               style={[
                 styles.submitButton,

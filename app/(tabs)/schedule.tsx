@@ -8,18 +8,13 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useShifts } from '@/hooks/useShifts';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { addMonths, format, formatISO, getDay, getDaysInMonth, isSameDay, parseISO, startOfMonth, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
 import { Alert, Button, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ScheduleScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
-  const insets = useSafeAreaInsets();
-  const tabBarHeight = useBottomTabBarHeight();
-  const bottomPadding = insets.bottom + tabBarHeight;
   const { shifts, error, refresh } = useShifts('upcoming');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
@@ -146,7 +141,6 @@ export default function ScheduleScreen() {
       <ThemedView style={[styles.container]}> 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{paddingBottom: bottomPadding + 24}}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
