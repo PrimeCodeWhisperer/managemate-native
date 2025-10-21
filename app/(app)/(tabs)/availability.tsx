@@ -8,8 +8,9 @@ import { Colors } from '@/constants/Colors';
 import { DayAvailability, useAvailability } from '@/hooks/useAvailability';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNativeTabsBottomGutter } from '@/hooks/useNativeTabsBottomGutter';
+import { useFocusEffect } from '@react-navigation/core';
 import { addDays, formatISO } from 'date-fns';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Alert,
   RefreshControl,
@@ -96,6 +97,11 @@ export default function AvailabilityScreen() {
       setRefreshing(false);
     }
   };
+  useFocusEffect(
+    useCallback(() => {
+      onRefresh();
+    }, [])
+  );
 
   return (
     <ErrorBoundary>

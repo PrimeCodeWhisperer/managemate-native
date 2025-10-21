@@ -6,8 +6,9 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNativeTabsBottomGutter } from '@/hooks/useNativeTabsBottomGutter';
 import { Shift, useShifts } from '@/hooks/useShifts';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/core';
 import { addMonths, format, isSameMonth, parseISO, subMonths } from 'date-fns';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Button, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -83,7 +84,11 @@ export default function TimesheetScreen() {
     if (hours > 8) return { status: 'Overtime', color: theme.warning, backgroundColor: theme.warningBackground };
     return { status: 'Completed', color: theme.success, backgroundColor: theme.successBackground };
   };
-
+useFocusEffect(
+    useCallback(() => {
+      onRefresh();
+    }, [])
+  );
   if (error) {
     return (
       <ErrorBoundary>

@@ -8,7 +8,7 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface Props {
   isClockedIn: boolean;
-  onStatusChange: () => Promise<void> | void;
+  onStatusChange: (immediateClockInTime?: number) => Promise<void> | void;
   elapsedTime: number;
   hasShiftToday: boolean;
 }
@@ -27,7 +27,7 @@ export default function ClockButton({ isClockedIn, onStatusChange, elapsedTime, 
       // Check if there's an active shift for today in past_shifts (this indicates clocked in)
       const { data: activeShift, error } = await supabase
         .from('past_shifts')
-        .select('shift_id')
+        .select('id')
         .eq('user_id', profile?.id)
         .eq('date', today)
         .is('end_time', null)
@@ -36,7 +36,7 @@ export default function ClockButton({ isClockedIn, onStatusChange, elapsedTime, 
       if (error) throw error;
       
       if (activeShift) {
-        setCurrentShiftId(activeShift.shift_id);
+        setCurrentShiftId(activeShift.id);
       }
     } catch (e: any) {
       console.error('Failed to load current shift:', e);
@@ -64,7 +64,7 @@ export default function ClockButton({ isClockedIn, onStatusChange, elapsedTime, 
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
     const currentTime = `${today.getHours().toString().padStart(2, '0')}:${today.getMinutes().toString().padStart(2, '0')}`;
-
+    const clockInTimestamp = today.getTime();
     try {
       setLoading(true);
 
@@ -82,16 +82,16 @@ export default function ClockButton({ isClockedIn, onStatusChange, elapsedTime, 
       const { error: pastShiftError } = await supabase
         .from('past_shifts')
         .insert({
+          id: existingShift.id,
           user_id: profile.id,
           date: todayStr,
           start_time: currentTime,
-          shift_id: existingShift.id
         });
 
       if (pastShiftError) throw pastShiftError;
 
       setCurrentShiftId(existingShift.id);
-      await onStatusChange();
+      await onStatusChange(clockInTimestamp);
     } catch (e: any) {
       console.error('Failed to clock in:', e);
       Alert.alert('Error', e.message ?? 'Failed to clock in');
@@ -116,10 +116,17 @@ export default function ClockButton({ isClockedIn, onStatusChange, elapsedTime, 
       const { error: pastShiftError } = await supabase
         .from('past_shifts')
         .update({ end_time: currentTime })
-        .eq('shift_id', currentShiftId)
+        .eq('id', currentShiftId)
         .eq('user_id', profile.id);
 
       if (pastShiftError) throw pastShiftError;
+
+      const {error:deleteUpcomingShift} = await supabase
+        .from('upcoming_shifts')
+        .delete()
+        .eq('id',currentShiftId)
+      
+      if (deleteUpcomingShift) throw deleteUpcomingShift;
 
       setCurrentShiftId(null);
       await onStatusChange();

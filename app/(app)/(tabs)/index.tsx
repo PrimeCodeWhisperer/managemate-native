@@ -10,6 +10,7 @@ import { useNativeTabsBottomGutter } from '@/hooks/useNativeTabsBottomGutter';
 import { useProfile } from '@/hooks/useProfile';
 import { useShifts } from '@/hooks/useShifts';
 import { supabase } from '@/supabase';
+import { useFocusEffect } from '@react-navigation/core';
 import { Link } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -61,7 +62,7 @@ export default function HomeScreen() {
       const today = new Date().toISOString().split('T')[0];
       const { data: activeShift, error } = await supabase
         .from('past_shifts')
-        .select('start_time, shift_id')
+        .select('start_time, id')
         .eq('user_id', profile.id)
         .eq('date', today)
         .is('end_time', null)
@@ -78,7 +79,7 @@ export default function HomeScreen() {
         setClockStart(null);
       }
     } catch (e) {
-      console.error('Failed to load clock status:', e);
+      console.error('Failed to load clock status:');
       setIsClockedIn(false);
       setClockStart(null);
     } finally {
@@ -90,10 +91,17 @@ export default function HomeScreen() {
     loadClockStatusFromDatabase();
   }, [loadClockStatusFromDatabase]);
 
-  const handleClockStatusChange = async () => {
+  const handleClockStatusChange = async (immediateClockInTime?: number) => {
     try {
+      if (immediateClockInTime) {
+        setIsClockedIn(true);
+        setClockStart(immediateClockInTime);
+      }
+    if (!immediateClockInTime) {
+
       await loadClockStatusFromDatabase();
       refresh();
+    }
     } catch (e: any) {
       Alert.alert('Error', e.message ?? 'Failed to update clock status');
     }
@@ -125,7 +133,11 @@ export default function HomeScreen() {
       setRefreshing(false);
     }
   };
-
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [])
+  );
   if (isLoading) {
     return (
       <View
@@ -148,7 +160,7 @@ export default function HomeScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
               // ensure top/bottom content clears status bar + native tab bar
-              paddingTop:insets.top,
+              paddingTop: insets.top,
               paddingBottom: bottomGutter,
             }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}

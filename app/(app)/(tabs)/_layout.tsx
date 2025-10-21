@@ -52,7 +52,7 @@ export default function TabLayout() {
         })}
         <Label>Availability</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="others" hidden>
+      <NativeTabs.Trigger name="others">
         {Platform.select({
           ios: <Icon sf="ellipsis" />,
           android: <Icon src={<VectorIcon family={Entypo} name="dots-three-horizontal" />} />,

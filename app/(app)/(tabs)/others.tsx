@@ -194,7 +194,7 @@ export default function OthersScreen() {
 
             {/* Menu Items */}
             <View style={styles.menuItems}>
-              {menuItems.map((item) => (
+              {/* {menuItems.map((item) => (
                 <TouchableOpacity
                   key={item.id}
                   style={[
@@ -219,7 +219,7 @@ export default function OthersScreen() {
                   </View>
                   {item.onPress && <Ionicons name="chevron-forward" size={16} color={theme.icon} />}
                 </TouchableOpacity>
-              ))}
+              ))} */}
 
               {/* Sign Out Button */}
               <TouchableOpacity
