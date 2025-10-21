@@ -4,6 +4,7 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,12 +18,15 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const insets=useSafeAreaInsets()
+  const router = useRouter();
 
   const signIn = async () => {
     try {
       setLoading(true);
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+            router.replace('/(app)/(tabs)');
+
     } catch (e: any) {
       Alert.alert('Login error', e.message ?? 'Failed to sign in');
     } finally {
