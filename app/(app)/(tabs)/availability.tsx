@@ -3,26 +3,25 @@ import { ThemedView } from '@/components/ThemedView';
 import DayAvailabilityCard from '@/components/cards/DayAvailabilityCard';
 import AvailabilityModal from '@/components/forms/AvailabilityModal';
 import WeekNavigator from '@/components/navigation/WeekNavigator';
+import { FloatingActionButton } from '@/components/ui/FloatingActionButton';
 import { Colors } from '@/constants/Colors';
 import { DayAvailability, useAvailability } from '@/hooks/useAvailability';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Ionicons } from '@expo/vector-icons'; // NEW for FAB icon
+import { useNativeTabsBottomGutter } from '@/hooks/useNativeTabsBottomGutter';
 import { addDays, formatISO } from 'date-fns';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   RefreshControl,
   ScrollView,
   StyleSheet,
-  TouchableOpacity
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AvailabilityScreen() {
-  const insets = useSafeAreaInsets(); // NEW
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
+  const { bottomGutter } = useNativeTabsBottomGutter({ extra: 20 }); // Extra padding for scroll content
   
   const {
     weekStart,
@@ -112,7 +111,7 @@ export default function AvailabilityScreen() {
             style={styles.daysList}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
-              paddingBottom: insets.bottom*1.7, // Extra space for FAB
+              paddingBottom: bottomGutter, // Use proper bottom gutter for scroll content
             }}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -134,27 +133,16 @@ export default function AvailabilityScreen() {
             })}
           </ScrollView>
 
-          {/* Modern Floating Action Button */}
-          <TouchableOpacity
-            style={[
-              styles.floatingButton,
-              {
-                backgroundColor: theme.primary,
-                bottom: insets.bottom *2 , // Positioned above tab bar with safe area
-                shadowColor: theme.shadow,
-              },
-              (supabaseLoading || submitting) && styles.disabledButton
-            ]}
+          {/* Modern Floating Action Button with proper cross-device positioning */}
+          <FloatingActionButton
             onPress={showSaveConfirmation}
             disabled={supabaseLoading || submitting}
-            activeOpacity={0.8}
-          >
-            {(supabaseLoading || submitting) ? (
-              <ActivityIndicator color={theme.primaryForeground} size="small" />
-            ) : (
-              <Ionicons name="checkmark" size={20} color={theme.primaryForeground} />
-            )}
-          </TouchableOpacity>
+            loading={supabaseLoading || submitting}
+            icon="checkmark"
+            backgroundColor={theme.primary}
+            foregroundColor={theme.primaryForeground}
+            shadowColor={theme.shadow}
+          />
 
           <AvailabilityModal
             visible={showModal}
@@ -165,9 +153,10 @@ export default function AvailabilityScreen() {
             onSave={saveDayAvailability}
             theme={theme}
           />
-</ThemedView>
+        </ThemedView>
       </SafeAreaView>
-    </ErrorBoundary>  );
+    </ErrorBoundary>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -179,25 +168,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
-  // Modern Floating Action Button (FAB)
-  floatingButton: {
-    position: 'absolute',
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 8, // Android shadow
-    shadowOffset: { width: 0, height: 4 }, // iOS shadow
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    zIndex: 1000, // Ensure it appears above other elements
-  },
-  disabledButton: {
-    opacity: 0.6,
-  },
-  // Remove old button styles
+  // Remove old button styles - now handled by FloatingActionButton component
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
