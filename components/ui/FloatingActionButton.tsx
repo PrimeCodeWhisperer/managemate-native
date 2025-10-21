@@ -9,6 +9,29 @@ import {
   ViewStyle,
 } from 'react-native';
 
+/**
+ * FloatingActionButton - Cross-platform floating action button with consistent positioning
+ * 
+ * This component automatically handles different device types and navigation styles:
+ * - iOS devices with different safe areas (notch, home indicator, etc.)
+ * - Android devices with different navigation (gesture, 3-button, etc.)
+ * - Tablets and landscape orientations
+ * 
+ * Usage:
+ * ```tsx
+ * <FloatingActionButton
+ *   onPress={() => console.log('Pressed!')}
+ *   icon="add"
+ *   loading={isLoading}
+ * />
+ * ```
+ * 
+ * For scroll content, use useNativeTabsBottomGutter in your ScrollView:
+ * ```tsx
+ * const { bottomGutter } = useNativeTabsBottomGutter({ extra: 20 });
+ * <ScrollView contentContainerStyle={{ paddingBottom: bottomGutter }}>
+ * ```
+ */
 interface FloatingActionButtonProps {
   onPress: () => void;
   disabled?: boolean;
