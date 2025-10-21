@@ -9,10 +9,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, parseISO } from 'date-fns';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context'; // NEW
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function VacationsScreen() {
-  const insets = useSafeAreaInsets(); // NEW
+  const insets = useSafeAreaInsets();
   const { vacations, loading, error, refresh, addVacation } = useVacations();
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
@@ -48,16 +48,31 @@ export default function VacationsScreen() {
     }
   };
 
+  // Android-safe pickers: advance/close on event.type === 'set'
   const onStartDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      if (event?.type === 'set' && selectedDate) {
+        setStartDate(selectedDate);
+        if (endDate < selectedDate) setEndDate(selectedDate);
+        setShowStartPicker(false);
+        setShowEndPicker(true);
+      }
+      return;
+    }
     if (selectedDate) {
       setStartDate(selectedDate);
-      if (endDate < selectedDate) {
-        setEndDate(selectedDate);
-      }
+      if (endDate < selectedDate) setEndDate(selectedDate);
     }
   };
 
   const onEndDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      if (event?.type === 'set' && selectedDate) {
+        setEndDate(selectedDate);
+        setShowEndPicker(false);
+      }
+      return;
+    }
     if (selectedDate) {
       setEndDate(selectedDate);
     }
@@ -114,12 +129,12 @@ export default function VacationsScreen() {
         <View style={styles.cardHeader}>
           <View style={styles.vacationInfo}>
             <Text style={[styles.vacationRange, { color: theme.foreground }]}>{range}</Text>
-            <Text style={[styles.vacationDates, { color: theme.mutedForeground }]}>
+            <Text style={[styles.vacationDates, { color: theme.mutedForeground }]}> 
               {format(parseISO(v.start_date), 'EEEE')} - {format(parseISO(v.end_date), 'EEEE')}
             </Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
-            <Text style={[styles.statusText, { color: statusColors.text }]}>
+            <Text style={[styles.statusText, { color: statusColors.text }]}> 
               {v.status || 'Pending'}
             </Text>
           </View>
@@ -191,10 +206,10 @@ export default function VacationsScreen() {
             ) : (
               <View style={styles.emptyContainer}>
                 <Ionicons name="calendar-clear-outline" size={48} color={theme.mutedForeground} />
-                <ThemedText style={[styles.emptyText, { color: theme.mutedForeground }]}>
+                <ThemedText style={[styles.emptyText, { color: theme.mutedForeground }]}> 
                   No vacation requests yet
                 </ThemedText>
-                <ThemedText style={[styles.emptySubtext, { color: theme.mutedForeground }]}>
+                <ThemedText style={[styles.emptySubtext, { color: theme.mutedForeground }]}> 
                   Tap the button to request time off
                 </ThemedText>
               </View>
@@ -208,7 +223,7 @@ export default function VacationsScreen() {
             styles.fab,
             {
               backgroundColor: theme.primary,
-              bottom: insets.bottom ,
+              bottom: insets.bottom,
               shadowColor: theme.shadow,
             }
           ]}
@@ -223,7 +238,7 @@ export default function VacationsScreen() {
           <Ionicons name="add" size={24} color={theme.primaryForeground} />
         </TouchableOpacity>
 
-        {/* Modal - unchanged */}
+        {/* Modal */}
         <Modal
           visible={showDateModal}
           animationType="slide"
@@ -242,7 +257,7 @@ export default function VacationsScreen() {
             </View>
 
             <View style={styles.modalContent}>
-              <ThemedText style={[styles.modalSubtext, { color: theme.mutedForeground }]}>
+              <ThemedText style={[styles.modalSubtext, { color: theme.mutedForeground }]}> 
                 Select your vacation dates
               </ThemedText>
 
@@ -257,7 +272,7 @@ export default function VacationsScreen() {
                 </View>
                 
                 <View style={styles.datePickerSection}>
-                  <Text style={[styles.selectedDateText, { color: theme.foreground }]}>
+                  <Text style={[styles.selectedDateText, { color: theme.foreground }]}> 
                     {format(startDate, 'EEEE, MMMM d, yyyy')}
                   </Text>
                   
@@ -271,14 +286,16 @@ export default function VacationsScreen() {
                         minimumDate={new Date()}
                         themeVariant={scheme}
                       />
-                      <TouchableOpacity
-                        style={[styles.confirmButton, { backgroundColor: theme.primary }]}
-                        onPress={confirmStartDate}
-                      >
-                        <Text style={[styles.confirmButtonText, { color: theme.primaryForeground }]}>
-                          Confirm Start Date
-                        </Text>
-                      </TouchableOpacity>
+                      {Platform.OS === 'ios' && (
+                        <TouchableOpacity
+                          style={[styles.confirmButton, { backgroundColor: theme.primary }]}
+                          onPress={confirmStartDate}
+                        >
+                          <Text style={[styles.confirmButtonText, { color: theme.primaryForeground }]}> 
+                            Confirm Start Date
+                          </Text>
+                        </TouchableOpacity>
+                      )}
                     </>
                   )}
                 </View>
@@ -295,7 +312,7 @@ export default function VacationsScreen() {
                 </View>
                 
                 <View style={styles.datePickerSection}>
-                  <Text style={[styles.selectedDateText, { color: theme.foreground }]}>
+                  <Text style={[styles.selectedDateText, { color: theme.foreground }]}> 
                     {format(endDate, 'EEEE, MMMM d, yyyy')}
                   </Text>
                   
@@ -309,14 +326,16 @@ export default function VacationsScreen() {
                         minimumDate={startDate}
                         themeVariant={scheme}
                       />
-                      <TouchableOpacity
-                        style={[styles.confirmButton, { backgroundColor: theme.primary }]}
-                        onPress={confirmEndDate}
-                      >
-                        <Text style={[styles.confirmButtonText, { color: theme.primaryForeground }]}>
-                          Confirm End Date
-                        </Text>
-                      </TouchableOpacity>
+                      {Platform.OS === 'ios' && (
+                        <TouchableOpacity
+                          style={[styles.confirmButton, { backgroundColor: theme.primary }]}
+                          onPress={confirmEndDate}
+                        >
+                          <Text style={[styles.confirmButtonText, { color: theme.primaryForeground }]}> 
+                            Confirm End Date
+                          </Text>
+                        </TouchableOpacity>
+                      )}
                     </>
                   )}
                 </View>
@@ -339,7 +358,7 @@ export default function VacationsScreen() {
                 onPress={submit}
                 disabled={submitting || showStartPicker || showEndPicker}
               >
-                <Text style={[styles.saveModalButtonText, { color: theme.primaryForeground }]}>
+                <Text style={[styles.saveModalButtonText, { color: theme.primaryForeground }]}> 
                   {submitting ? 'Submitting...' : 'Submit Request'}
                 </Text>
               </TouchableOpacity>
@@ -466,7 +485,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   
-  // Modal styles (unchanged)
+  // Modal styles
   modalContainer: {
     flex: 1,
     paddingTop: 50,
