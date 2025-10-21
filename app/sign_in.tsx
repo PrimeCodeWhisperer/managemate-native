@@ -6,7 +6,7 @@ import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function LoginScreen() {
@@ -56,21 +56,6 @@ export default function LoginScreen() {
     Alert.alert('Sign Up', 'Registration functionality will be available soon');
   };
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    try {
-      // Reset form state on refresh
-      setEmail('');
-      setPassword('');
-      setShowPassword(false);
-      setLoading(false);
-    } catch (error) {
-      console.error('Failed to refresh login:', error);
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: 'height' })}
@@ -82,9 +67,6 @@ export default function LoginScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
       >
         <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
           
