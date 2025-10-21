@@ -14,7 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function TimesheetScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
-  const { bottomGutter } = useNativeTabsBottomGutter({ extra: 20 });
+  // Timesheet has a wide pill + FAB; give it a bit more clearance than other screens
+  const { bottomGutter } = useNativeTabsBottomGutter({ extra: 28 });
   
   const { shifts, error, refresh } = useShifts('past');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -131,7 +132,7 @@ export default function TimesheetScreen() {
             style={styles.shiftsList}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
-              paddingBottom: bottomGutter + 60, // Extra space for floating summary + FAB
+              paddingBottom: bottomGutter + 84, // ensure content clears wide pill + FAB fully
             }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           >
@@ -151,7 +152,7 @@ export default function TimesheetScreen() {
                           <View style={styles.shiftInfo}>
                             <ThemedText style={styles.shiftTitle}>Shift</ThemedText>
                             {shift.role ?? (
-                              <ThemedText style={[styles.shiftLocation, { color: theme.icon }]}>
+                              <ThemedText style={[styles.shiftLocation, { color: theme.icon }]}> 
                                 {shift.location || 'Employee'}
                               </ThemedText>
                             )}
@@ -185,12 +186,12 @@ export default function TimesheetScreen() {
             )}
           </ScrollView>
 
-          {/* Modern floating summary pill + Export FAB with proper positioning */}
+          {/* Floating summary pill + Export FAB */}
           <View
             pointerEvents="box-none"
             style={[
               styles.floatingContainer,
-              { bottom: bottomGutter }
+              { bottom: bottomGutter + 8 } // nudge above iOS tab bar highlight / Android navbar
             ]}
           >
             <View
@@ -253,7 +254,6 @@ const styles = StyleSheet.create({
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 64 },
   emptyStateText: { fontSize: 16, textAlign: 'center' },
 
-  // Modern floating summary + FAB with proper cross-device positioning
   floatingContainer: {
     position: 'absolute',
     left: 16,
