@@ -6,11 +6,10 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useVacations } from '@/hooks/useVacations';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { format, parseISO } from 'date-fns';
+import { add, format, parseISO } from 'date-fns';
 import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 export default function VacationsScreen() {
   const insets = useSafeAreaInsets();
   const { vacations, loading, error, refresh, addVacation } = useVacations();
@@ -20,6 +19,8 @@ export default function VacationsScreen() {
   // Dates start undefined on both platforms; user explicitly picks them
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+  const [candidateStartDate, setCandidateStartDate] = useState<Date | null>(null);
+  const [candidateEndDate, setCandidateEndDate] = useState<Date | null>(null);
 
   const [showDateModal, setShowDateModal] = useState(false);
   const [showStartPicker, setShowStartPicker] = useState(false);
@@ -29,6 +30,9 @@ export default function VacationsScreen() {
 
   const canSubmit = useMemo(() => !!startDate && !!endDate && !showStartPicker && !showEndPicker, [startDate, endDate, showStartPicker, showEndPicker]);
 
+
+  //Assume employees can only plan vacations up to three weeks before
+  const defaultStartDate=add(new Date(),{weeks:3})
   const submit = async () => {
     try {
       if (!startDate || !endDate) return;
@@ -38,13 +42,16 @@ export default function VacationsScreen() {
       if (endDate < startDate) {
         Alert.alert('Error', 'End date must be after start date');
         return;
+      }else if(!startDate){
+        Alert.alert('Error', 'Start date not inserted');
+        return;
+
+      }else if(!endDate){
+        Alert.alert('Error', 'End date not inserted');
+        return
       }
       await addVacation(startDateStr, endDateStr);
-      setStartDate(null);
-      setEndDate(null);
-      setShowDateModal(false);
-      setShowStartPicker(false);
-      setShowEndPicker(false);
+      onClose();
     } catch (e: any) {
       Alert.alert('Error', e.message ?? 'Failed to submit vacation');
     } finally {
@@ -52,20 +59,32 @@ export default function VacationsScreen() {
     }
   };
 
-  const openStartPicker = () => { setShowStartPicker(true); setShowEndPicker(false); };
-  const openEndPicker = () => { setShowEndPicker(true); setShowStartPicker(false); };
+  const openStartPicker = () => { 
+    setShowStartPicker(true); 
+    setShowEndPicker(false);
+    if(Platform.OS==='ios' && !candidateStartDate) setCandidateStartDate(defaultStartDate)
+  };
+  const openEndPicker = () => { 
+    setShowEndPicker(true); 
+    setShowStartPicker(false); 
+    if(Platform.OS==='ios' && !candidateEndDate){
+      if (startDate){setCandidateEndDate(startDate)} 
+      else {setCandidateEndDate(defaultStartDate)};
+    }
+
+  };
 
   // Only commit on explicit confirm (iOS) or selection (Android)
   const onStartDateChange = (event: any, selected?: Date) => {
     if (Platform.OS === 'android') {
       if (event?.type === 'set' && selected) {
         setStartDate(selected);
-        if (!endDate || endDate < selected) setEndDate(selected);
+        if (endDate && endDate<selected) setEndDate(null)
       }
       setShowStartPicker(false);
       return;
     }
-    if (selected) setStartDate(selected);
+    if (selected) setCandidateStartDate(selected);
   };
 
   const onEndDateChange = (event: any, selected?: Date) => {
@@ -74,15 +93,29 @@ export default function VacationsScreen() {
       setShowEndPicker(false);
       return;
     }
-    if (selected) setEndDate(selected);
+    if (selected) setCandidateEndDate(selected);
   };
 
   const onConfirmStartIOS = () => {
     setShowStartPicker(false);
-    if (startDate && (!endDate || endDate < startDate)) setEndDate(startDate);
+    setStartDate(candidateStartDate);
+    if (startDate && endDate && endDate<startDate) setEndDate(null)
+    setCandidateStartDate(null);
   };
-  const onConfirmEndIOS = () => setShowEndPicker(false);
-
+  const onConfirmEndIOS = () => {
+    setShowEndPicker(false);
+    setEndDate(candidateEndDate);
+    setCandidateEndDate(null);
+  };
+  const onClose=()=>{
+      setCandidateStartDate(null);
+      setCandidateEndDate(null);
+      setStartDate(null);
+      setEndDate(null);
+      setShowDateModal(false);
+      setShowStartPicker(false);
+      setShowEndPicker(false);
+  }
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'approved': return { bg: theme.successBackground, text: theme.success };
@@ -181,12 +214,12 @@ export default function VacationsScreen() {
           visible={showDateModal}
           animationType="slide"
           presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
-          onRequestClose={() => setShowDateModal(false)}
+          onRequestClose={onClose}
         >
           <View style={[styles.modalContainer, { backgroundColor: theme.background }]}>
             <View style={styles.modalHeader}>
               <ThemedText style={styles.modalTitle}>Request Vacation</ThemedText>
-              <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.secondary }]} onPress={() => setShowDateModal(false)}>
+              <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.secondary }]} onPress={onClose}>
                 <Ionicons name="close" size={16} color={theme.foreground} />
               </TouchableOpacity>
             </View>
@@ -217,11 +250,11 @@ export default function VacationsScreen() {
 
                   {showStartPicker && (
                     <DateTimePicker
-                      value={startDate ?? new Date()}
+                      value={candidateStartDate ?? defaultStartDate}
                       mode="date"
                       display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                       onChange={onStartDateChange}
-                      minimumDate={new Date()}
+                      minimumDate={defaultStartDate}
                       themeVariant={scheme}
                     />
                   )}
@@ -257,11 +290,11 @@ export default function VacationsScreen() {
 
                   {showEndPicker && (
                     <DateTimePicker
-                      value={endDate ?? (startDate ?? new Date())}
+                      value={candidateEndDate ?? (startDate ?? defaultStartDate)}
                       mode="date"
                       display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                       onChange={onEndDateChange}
-                      minimumDate={startDate ?? new Date()}
+                      minimumDate={startDate ?? defaultStartDate}
                       themeVariant={scheme}
                     />
                   )}
@@ -276,7 +309,7 @@ export default function VacationsScreen() {
             </View>
 
             <View style={styles.modalActions}>
-              <TouchableOpacity style={[styles.cancelButton, { borderColor: theme.border }]} onPress={() => setShowDateModal(false)}>
+              <TouchableOpacity style={[styles.cancelButton, { borderColor: theme.border }]} onPress={onClose}>
                 <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity

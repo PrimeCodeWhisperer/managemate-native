@@ -67,8 +67,6 @@ export function FloatingActionButton({
       height: size,
       borderRadius: size / 2,
     },
-    (disabled || loading) && styles.disabledButton,
-    style,
   ];
 
   return (

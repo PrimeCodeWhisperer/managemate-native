@@ -1,4 +1,5 @@
-import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
+import { Entypo } from '@expo/vector-icons';
+import { Icon, Label, NativeTabs, VectorIcon } from 'expo-router/unstable-native-tabs';
 import { DynamicColorIOS, Platform } from 'react-native';
 
 export default function TabLayout() {
@@ -9,6 +10,7 @@ export default function TabLayout() {
 
   return (
     <NativeTabs
+      blurEffect='systemDefault'
       // Helps avoid a transparent bar on iOS with scroll views
       disableTransparentOnScrollEdge
       // Give a non-transparent indicator so you can verify selection
@@ -23,23 +25,38 @@ export default function TabLayout() {
       labelVisibilityMode="labeled"
     >
       <NativeTabs.Trigger name="index">
-        <Icon sf="house" />
+        {Platform.select({
+          ios: <Icon sf="house.fill" />,
+          android: <Icon src={<VectorIcon family={Entypo} name="home" />} />,
+        })}
         <Label>Home</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="schedule">
-        <Icon sf="calendar" />
+        {Platform.select({
+          ios: <Icon sf="calendar" />,
+          android: <Icon src={<VectorIcon family={Entypo} name="calendar" />} />,
+        })}
         <Label>Schedule</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="timesheet">
-        <Icon sf="clock" />
+        {Platform.select({
+          ios: <Icon sf="clock.fill" />,
+          android: <Icon src={<VectorIcon family={Entypo} name="clock" />} />,
+        })}
         <Label>Timesheet</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="availability">
-        <Icon sf="person" />
+        {Platform.select({
+          ios: <Icon sf="person.fill" />,
+          android: <Icon src={<VectorIcon family={Entypo} name="user" />} />,
+        })}
         <Label>Availability</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="others">
-        <Icon sf="ellipsis" />
+      <NativeTabs.Trigger name="others" hidden>
+        {Platform.select({
+          ios: <Icon sf="ellipsis" />,
+          android: <Icon src={<VectorIcon family={Entypo} name="dots-three-horizontal" />} />,
+        })}
         <Label>Others</Label>
       </NativeTabs.Trigger>
     </NativeTabs>

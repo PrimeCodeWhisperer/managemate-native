@@ -8,7 +8,7 @@ import { Shift, useShifts } from '@/hooks/useShifts';
 import { Ionicons } from '@expo/vector-icons';
 import { addMonths, format, isSameMonth, parseISO, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
-import { Alert, Button, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TimesheetScreen() {
@@ -212,15 +212,16 @@ export default function TimesheetScreen() {
                 {Math.round(totalHours)}h
               </ThemedText>
             </View>
-
-            <TouchableOpacity
+            
+            {/* Summary hided for now */}
+            {/* <TouchableOpacity
               style={[styles.fab, { backgroundColor: theme.primary, shadowColor: theme.shadow }]}
               onPress={() => {Alert.alert('Coming Soon',"Export As PDS not available yet.")}}
               accessibilityLabel="Export timesheet as PDF"
               activeOpacity={0.85}
             >
               <Ionicons name="document-text-outline" size={22} color={theme.primaryForeground} />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </ThemedView>
       </SafeAreaView>
@@ -261,12 +262,14 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   summaryPill: {
     flex: 1,
-    marginRight: 12,
+
+    //Uncomment when reimplement summary
+    //marginRight: 12,
     borderWidth: 1,
     borderRadius: 16,
     paddingHorizontal: 14,

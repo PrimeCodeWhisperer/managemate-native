@@ -25,19 +25,6 @@ export function useNativeTabsBottomGutter(options?: { extra?: number, iosExtra?:
 
   const bottomGutter = shouldTrustInsetOnly ? insets.bottom + perPlatformExtra : base + perPlatformExtra;
 
-  if (__DEV__) {
-    console.log('useNativeTabsBottomGutter Debug v2:', {
-      platform: Platform.OS,
-      insetsBottom: insets.bottom,
-      androidFallback,
-      base,
-      perPlatformExtra,
-      shouldTrustInsetOnly,
-      finalBottomGutter: bottomGutter,
-      dims: { width, height },
-      isLandscape
-    });
-  }
 
   return { bottomGutter, insets };
 }

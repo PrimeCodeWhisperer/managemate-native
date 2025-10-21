@@ -1,5 +1,4 @@
 import ShiftDetailCard from '@/components/cards/ShiftDetailCard';
-import QuickActionsPanel from '@/components/common/QuickActionsPanel';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import CalendarGrid from '@/components/navigation/CalendarGrid';
 import MonthNavigator from '@/components/navigation/MonthNavigator';
@@ -11,7 +10,7 @@ import { useNativeTabsBottomGutter } from '@/hooks/useNativeTabsBottomGutter';
 import { useShifts } from '@/hooks/useShifts';
 import { addMonths, format, formatISO, getDay, getDaysInMonth, isSameDay, parseISO, startOfMonth, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
-import { Alert, Button, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Button, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
@@ -118,7 +117,7 @@ export default function ScheduleScreen() {
                 </ThemedText>
               </View>
             )}
-            <QuickActionsPanel onRequestShift={() => Alert.alert('Coming Soon', 'Request Shift will be available soon')} onDropShift={() => Alert.alert('Coming Soon', 'Drop shift option will be available soon')} theme={theme} />
+            {/* <QuickActionsPanel onRequestShift={() => Alert.alert('Coming Soon', 'Request Shift will be available soon')} onDropShift={() => Alert.alert('Coming Soon', 'Drop shift option will be available soon')} theme={theme} /> */}
           </ScrollView>
         </ThemedView>
       </SafeAreaView>{/* NEW */}
