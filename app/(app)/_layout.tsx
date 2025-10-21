@@ -12,7 +12,7 @@ export default function AppLayout() {
 
   return (
     <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false , headerTitle: '' }} />
       <Stack.Screen name="open-shifts" options={{ title: 'Open Shifts' }} />
       <Stack.Screen name="vacations" options={{ title: 'Vacations' }} />
     </Stack>

@@ -1,4 +1,3 @@
-import BackHeader from '@/components/BackHeader';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -10,8 +9,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, parseISO } from 'date-fns';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; // NEW
 
 export default function VacationsScreen() {
+  const insets = useSafeAreaInsets(); // NEW
   const { vacations, loading, error, refresh, addVacation } = useVacations();
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
@@ -50,7 +51,6 @@ export default function VacationsScreen() {
   const onStartDateChange = (event: any, selectedDate?: Date) => {
     if (selectedDate) {
       setStartDate(selectedDate);
-      // If end date is before the new start date, update end date
       if (endDate < selectedDate) {
         setEndDate(selectedDate);
       }
@@ -132,7 +132,6 @@ export default function VacationsScreen() {
     return (
       <ErrorBoundary>
         <ThemedView style={styles.container}>
-          <BackHeader title="Vacation Requests" />
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.primary} />
             <ThemedText style={styles.loadingText}>Loading vacation requests...</ThemedText>
@@ -146,7 +145,6 @@ export default function VacationsScreen() {
     return (
       <ErrorBoundary>
         <ThemedView style={styles.container}>
-          <BackHeader title="Vacation Requests" />
           <View style={styles.errorContainer}>
             <ThemedText style={styles.errorText}>{error}</ThemedText>
             <TouchableOpacity
@@ -174,12 +172,16 @@ export default function VacationsScreen() {
 
   return (
     <ErrorBoundary>
-      <ThemedView style={styles.container}>        
+      <ThemedView style={styles.container}>
+        
+        {/* Main Content */}
         <View style={styles.content}>
           <ScrollView
             style={styles.vacationsList}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.vacationsListContent}
+            contentContainerStyle={[
+              styles.vacationsListContent,
+            ]}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
@@ -193,29 +195,35 @@ export default function VacationsScreen() {
                   No vacation requests yet
                 </ThemedText>
                 <ThemedText style={[styles.emptySubtext, { color: theme.mutedForeground }]}>
-                  Tap the button below to request time off
+                  Tap the button to request time off
                 </ThemedText>
               </View>
             )}
           </ScrollView>
-
-          <View style={[styles.buttonContainer, { backgroundColor: theme.card, borderTopColor: theme.border }]}>
-            <TouchableOpacity
-              style={[styles.addButton, { backgroundColor: theme.primary }]}
-              onPress={() => {
-                setShowDateModal(true);
-                setShowStartPicker(true);
-                setShowEndPicker(false);
-              }}
-            >
-              <Ionicons name="add" size={20} color={theme.primaryForeground} />
-              <Text style={[styles.addButtonText, { color: theme.primaryForeground }]}>
-                Request Vacation
-              </Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
+        {/* Modern Floating Action Button */}
+        <TouchableOpacity
+          style={[
+            styles.fab,
+            {
+              backgroundColor: theme.primary,
+              bottom: insets.bottom ,
+              shadowColor: theme.shadow,
+            }
+          ]}
+          onPress={() => {
+            setShowDateModal(true);
+            setShowStartPicker(true);
+            setShowEndPicker(false);
+          }}
+          activeOpacity={0.8}
+          accessibilityLabel="Request vacation"
+        >
+          <Ionicons name="add" size={24} color={theme.primaryForeground} />
+        </TouchableOpacity>
+
+        {/* Modal - unchanged */}
         <Modal
           visible={showDateModal}
           animationType="slide"
@@ -381,7 +389,6 @@ const styles = StyleSheet.create({
   },
   vacationsListContent: {
     paddingTop: 16,
-    paddingBottom: 16,
     gap: 12,
   },
   vacationCard: {
@@ -435,24 +442,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
-  buttonContainer: {
-    paddingHorizontal: 16,
-    paddingBottom:26,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  addButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
   buttonText: {
     fontSize: 16,
     fontWeight: '600',
@@ -460,7 +449,24 @@ const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.6,
   },
-  // Modal styles
+  
+  // Modern Floating Action Button
+  fab: {
+    position: 'absolute',
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    zIndex: 1000,
+  },
+  
+  // Modal styles (unchanged)
   modalContainer: {
     flex: 1,
     paddingTop: 50,
