@@ -8,15 +8,26 @@ export function useNativeTabsBottomGutter(options?: { extra?: number }) {
 
   const extra = options?.extra ?? 12;
 
-  // Heuristics:
-  // - iOS: rely on safe area; when the tab bar moves (iPad/landscape), this is near 0 and that's correct.
-  // - Android: fall back to 56 when there is no inset (3-button nav / some devices).
-  const androidFallback = 56;
+  // More aggressive Android fallback - many Android devices report 0 safe area
+  // but still need space for navigation + tab bar
+  const androidFallback = 72; // Increased from 56 to account for tab bar + navigation
 
-  const base =
-    Platform.OS === 'android'
-      ? Math.max(insets.bottom, androidFallback)
-      : insets.bottom;
+  let base: number;
+  
+  if (Platform.OS === 'android') {
+    // For Android, be more aggressive with spacing
+    // Use whichever is larger: safe area insets or our fallback
+    base = Math.max(insets.bottom, androidFallback);
+    
+    // If we're using the fallback (meaning insets.bottom is small/zero),
+    // add extra spacing to ensure proper clearance
+    if (insets.bottom < 20) {
+      base += 16; // Additional padding for devices with minimal safe area reporting
+    }
+  } else {
+    // iOS - rely on safe area insets as they're usually accurate
+    base = insets.bottom;
+  }
 
   // On large iPads / Vision-style layouts the tabs can move away from the bottom;
   // when landscape + big screens, prefer the inset (often 0) without adding fallback.
