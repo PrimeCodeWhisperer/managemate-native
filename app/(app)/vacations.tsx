@@ -17,7 +17,7 @@ export default function VacationsScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
 
-  // Dates start undefined; users set them explicitly
+  // Dates start undefined on both platforms; user explicitly picks them
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
 
@@ -40,7 +40,6 @@ export default function VacationsScreen() {
         return;
       }
       await addVacation(startDateStr, endDateStr);
-      // reset
       setStartDate(null);
       setEndDate(null);
       setShowDateModal(false);
@@ -53,27 +52,10 @@ export default function VacationsScreen() {
     }
   };
 
-  // Android: show pickers in their own native modal layered above; avoid layering under pageSheet
-  const openStartPicker = () => {
-    if (Platform.OS === 'android') {
-      setShowStartPicker(true);
-      setShowEndPicker(false);
-    } else {
-      setShowStartPicker(true);
-      setShowEndPicker(false);
-    }
-  };
-  const openEndPicker = () => {
-    if (Platform.OS === 'android') {
-      setShowEndPicker(true);
-      setShowStartPicker(false);
-    } else {
-      setShowEndPicker(true);
-      setShowStartPicker(false);
-    }
-  };
+  const openStartPicker = () => { setShowStartPicker(true); setShowEndPicker(false); };
+  const openEndPicker = () => { setShowEndPicker(true); setShowStartPicker(false); };
 
-  // Android-safe: only commit on 'set'; auto-close that picker
+  // Only commit on explicit confirm (iOS) or selection (Android)
   const onStartDateChange = (event: any, selected?: Date) => {
     if (Platform.OS === 'android') {
       if (event?.type === 'set' && selected) {
@@ -95,16 +77,18 @@ export default function VacationsScreen() {
     if (selected) setEndDate(selected);
   };
 
+  const onConfirmStartIOS = () => {
+    setShowStartPicker(false);
+    if (startDate && (!endDate || endDate < startDate)) setEndDate(startDate);
+  };
+  const onConfirmEndIOS = () => setShowEndPicker(false);
+
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
-      case 'approved':
-        return { bg: theme.successBackground, text: theme.success };
-      case 'pending':
-        return { bg: theme.warningBackground || '#FEF3C7', text: theme.warning || '#D97706' };
-      case 'rejected':
-        return { bg: theme.destructiveBackground, text: theme.destructive };
-      default:
-        return { bg: theme.muted, text: theme.mutedForeground };
+      case 'approved': return { bg: theme.successBackground, text: theme.success };
+      case 'pending': return { bg: theme.warningBackground || '#FEF3C7', text: theme.warning || '#D97706' };
+      case 'rejected': return { bg: theme.destructiveBackground, text: theme.destructive };
+      default: return { bg: theme.muted, text: theme.mutedForeground };
     }
   };
 
@@ -121,9 +105,7 @@ export default function VacationsScreen() {
             </Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
-            <Text style={[styles.statusText, { color: statusColors.text }]}>
-              {v.status || 'Pending'}
-            </Text>
+            <Text style={[styles.statusText, { color: statusColors.text }]}>{v.status || 'Pending'}</Text>
           </View>
         </View>
       </View>
@@ -158,12 +140,8 @@ export default function VacationsScreen() {
     );
   }
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    try { await refresh(); } finally { setRefreshing(false); }
-  };
+  const onRefresh = async () => { setRefreshing(true); try { await refresh(); } finally { setRefreshing(false); } };
 
-  // Helpers for displaying placeholder/selected text
   const renderDateText = (d: Date | null, placeholder: string) => (
     <Text style={[styles.selectedDateText, { color: d ? theme.foreground : theme.mutedForeground }]}>
       {d ? format(d, 'EEEE, MMMM d, yyyy') : placeholder}
@@ -181,7 +159,7 @@ export default function VacationsScreen() {
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           >
             {vacations.length > 0 ? vacations.map(renderVacation) : (
-              <View style={styles.emptyContainer}>
+              <View className="empty" style={styles.emptyContainer}>
                 <Ionicons name="calendar-clear-outline" size={48} color={theme.mutedForeground} />
                 <ThemedText style={[styles.emptyText, { color: theme.mutedForeground }]}>No vacation requests yet</ThemedText>
                 <ThemedText style={[styles.emptySubtext, { color: theme.mutedForeground }]}>Tap the button to request time off</ThemedText>
@@ -228,12 +206,13 @@ export default function VacationsScreen() {
 
                 <View style={styles.datePickerSection}>
                   {Platform.OS === 'android' ? (
-                    <TouchableOpacity style={styles.dateRowInteractive} onPress={openStartPicker} accessibilityRole="button">
+                    <TouchableOpacity style={styles.dateRowInteractive} onPress={openStartPicker}>
                       {renderDateText(startDate, 'Tap to choose start date')}
-                      <View style={styles.rowHint}><Ionicons name="calendar-outline" size={14} color={theme.mutedForeground} /><Text style={[styles.hintText, { color: theme.mutedForeground }]}>Tap to change</Text></View>
                     </TouchableOpacity>
                   ) : (
-                    renderDateText(startDate ?? new Date(), 'Select a start date')
+                    <TouchableOpacity onPress={openStartPicker}>
+                      {renderDateText(startDate, 'Select a start date')}
+                    </TouchableOpacity>
                   )}
 
                   {showStartPicker && (
@@ -248,7 +227,7 @@ export default function VacationsScreen() {
                   )}
 
                   {Platform.OS === 'ios' && showStartPicker && (
-                    <TouchableOpacity style={[styles.confirmButton, { backgroundColor: theme.primary }]} onPress={() => { setShowStartPicker(false); if (!endDate && startDate) setEndDate(startDate); }}>
+                    <TouchableOpacity style={[styles.confirmButton, { backgroundColor: theme.primary }]} onPress={onConfirmStartIOS}>
                       <Text style={[styles.confirmButtonText, { color: theme.primaryForeground }]}>Confirm Start Date</Text>
                     </TouchableOpacity>
                   )}
@@ -267,12 +246,13 @@ export default function VacationsScreen() {
 
                 <View style={styles.datePickerSection}>
                   {Platform.OS === 'android' ? (
-                    <TouchableOpacity style={styles.dateRowInteractive} onPress={openEndPicker} accessibilityRole="button">
+                    <TouchableOpacity style={styles.dateRowInteractive} onPress={openEndPicker}>
                       {renderDateText(endDate, 'Tap to choose end date')}
-                      <View style={styles.rowHint}><Ionicons name="calendar-outline" size={14} color={theme.mutedForeground} /><Text style={[styles.hintText, { color: theme.mutedForeground }]}>Tap to change</Text></View>
                     </TouchableOpacity>
                   ) : (
-                    renderDateText(endDate ?? (startDate ?? new Date()), 'Select an end date')
+                    <TouchableOpacity onPress={openEndPicker}>
+                      {renderDateText(endDate, 'Select an end date')}
+                    </TouchableOpacity>
                   )}
 
                   {showEndPicker && (
@@ -287,7 +267,7 @@ export default function VacationsScreen() {
                   )}
 
                   {Platform.OS === 'ios' && showEndPicker && (
-                    <TouchableOpacity style={[styles.confirmButton, { backgroundColor: theme.primary }]} onPress={() => setShowEndPicker(false)}>
+                    <TouchableOpacity style={[styles.confirmButton, { backgroundColor: theme.primary }]} onPress={onConfirmEndIOS}>
                       <Text style={[styles.confirmButtonText, { color: theme.primaryForeground }]}>Confirm End Date</Text>
                     </TouchableOpacity>
                   )}
@@ -350,12 +330,10 @@ const styles = StyleSheet.create({
   dateLabel: { fontSize: 16, fontWeight: '500' },
   editButton: { fontSize: 14, fontWeight: '500' },
   datePickerSection: { gap: 12 },
-  selectedDateText: { fontSize: 16, fontWeight: '500' },
+  selectedDateText: { fontSize: 16, fontWeight:  '500' },
   confirmButton: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 6, alignItems: 'center' },
   confirmButtonText: { fontSize: 14, fontWeight: '500' },
   dateRowInteractive: { paddingVertical: 12, paddingRight: 8, minHeight: 44 },
-  rowHint: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
-  hintText: { fontSize: 12 },
   modalActions: { flexDirection: 'row', gap: 12, paddingHorizontal: 24, paddingBottom: 34 },
   cancelButton: { flex: 1, paddingVertical: 12, borderRadius: 8, alignItems: 'center', borderWidth: 1 },
   cancelButtonText: { fontSize: 16, fontWeight: '500' },
