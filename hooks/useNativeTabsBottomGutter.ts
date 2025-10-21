@@ -9,7 +9,7 @@ export function useNativeTabsBottomGutter(options?: { extra?: number }) {
   const extra = options?.extra ?? 12;
 
   // Heuristics:
-  // - iOS: rely on safe area; when the tab bar moves (iPad/landscape), this is near 0 and that’s correct.
+  // - iOS: rely on safe area; when the tab bar moves (iPad/landscape), this is near 0 and that's correct.
   // - Android: fall back to 56 when there is no inset (3-button nav / some devices).
   const androidFallback = 56;
 
@@ -24,6 +24,21 @@ export function useNativeTabsBottomGutter(options?: { extra?: number }) {
     Platform.OS === 'ios' && (isLandscape || Math.max(width, height) >= 900);
 
   const bottomGutter = shouldTrustInsetOnly ? insets.bottom + extra : base + extra;
+
+  // Debug logging to help troubleshoot cross-device issues
+  if (__DEV__) {
+    console.log('useNativeTabsBottomGutter Debug:', {
+      platform: Platform.OS,
+      insetsBottom: insets.bottom,
+      androidFallback,
+      base,
+      extra,
+      shouldTrustInsetOnly,
+      finalBottomGutter: bottomGutter,
+      screenDimensions: { width, height },
+      isLandscape
+    });
+  }
 
   return { bottomGutter, insets };
 }
