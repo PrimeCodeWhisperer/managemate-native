@@ -3,17 +3,18 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useNativeTabsBottomGutter } from '@/hooks/useNativeTabsBottomGutter';
 import { Shift, useShifts } from '@/hooks/useShifts';
 import { Ionicons } from '@expo/vector-icons';
 import { addMonths, format, isSameMonth, parseISO, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
 import { Alert, Button, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'; // NEW
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TimesheetScreen() {
-  const insets = useSafeAreaInsets(); // NEW
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
+  const { bottomGutter } = useNativeTabsBottomGutter({ extra: 20 });
   
   const { shifts, error, refresh } = useShifts('past');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -97,7 +98,7 @@ export default function TimesheetScreen() {
 
   return (
     <ErrorBoundary>
-      <SafeAreaView style={{ flex: 1 }} edges={['top','left','right']}>{/* NEW */}
+      <SafeAreaView style={{ flex: 1 }} edges={['top','left','right']}>
         <ThemedView> 
           {/* Month Navigator */}
           <View style={styles.monthNavigator}>
@@ -130,7 +131,7 @@ export default function TimesheetScreen() {
             style={styles.shiftsList}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
-              paddingBottom: insets.bottom*1.7,   // NEW space for floating summary + FAB
+              paddingBottom: bottomGutter + 60, // Extra space for floating summary + FAB
             }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           >
@@ -184,12 +185,12 @@ export default function TimesheetScreen() {
             )}
           </ScrollView>
 
-          {/* Modern floating summary pill + Export FAB */}
+          {/* Modern floating summary pill + Export FAB with proper positioning */}
           <View
             pointerEvents="box-none"
             style={[
               styles.floatingContainer,
-              { bottom: insets.bottom *3} // sit above native tab bar
+              { bottom: bottomGutter }
             ]}
           >
             <View
@@ -225,7 +226,7 @@ export default function TimesheetScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 0 }, // top handled by insets
+  container: { flex: 1, paddingTop: 0 },
   errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 8, padding: 16 },
 
   monthNavigator: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 16 },
@@ -252,7 +253,7 @@ const styles = StyleSheet.create({
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 64 },
   emptyStateText: { fontSize: 16, textAlign: 'center' },
 
-  // Modern floating summary + FAB
+  // Modern floating summary + FAB with proper cross-device positioning
   floatingContainer: {
     position: 'absolute',
     left: 16,
