@@ -15,7 +15,7 @@ export default function TimesheetScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
   // Use a smaller extra on iOS, larger on Android to balance both
-  const { bottomGutter } = useNativeTabsBottomGutter({ iosExtra: 58, androidExtra: 28 });
+  const { bottomGutter } = useNativeTabsBottomGutter({ extra: 28 });
   
   const { shifts, error, refresh } = useShifts('past');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -97,7 +97,7 @@ export default function TimesheetScreen() {
     );
   }
 
-  const bottomNudge = Platform.OS === 'ios' ? 0 : 8; // iOS needs no extra nudge now
+  const bottomNudge = Platform.OS === 'ios' ? 24 : 8; // iOS needs no extra nudge now
 
   return (
     <ErrorBoundary>
