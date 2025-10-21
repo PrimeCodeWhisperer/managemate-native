@@ -8,14 +8,14 @@ import { Shift, useShifts } from '@/hooks/useShifts';
 import { Ionicons } from '@expo/vector-icons';
 import { addMonths, format, isSameMonth, parseISO, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
-import { Alert, Button, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Button, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TimesheetScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
-  // Timesheet has a wide pill + FAB; give it a bit more clearance than other screens
-  const { bottomGutter } = useNativeTabsBottomGutter({ extra: 28 });
+  // Use a smaller extra on iOS, larger on Android to balance both
+  const { bottomGutter } = useNativeTabsBottomGutter({ iosExtra: 16, androidExtra: 28 });
   
   const { shifts, error, refresh } = useShifts('past');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -97,6 +97,8 @@ export default function TimesheetScreen() {
     );
   }
 
+  const bottomNudge = Platform.OS === 'ios' ? 0 : 8; // iOS needs no extra nudge now
+
   return (
     <ErrorBoundary>
       <SafeAreaView style={{ flex: 1 }} edges={['top','left','right']}>
@@ -132,7 +134,7 @@ export default function TimesheetScreen() {
             style={styles.shiftsList}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
-              paddingBottom: bottomGutter + 84, // ensure content clears wide pill + FAB fully
+              paddingBottom: bottomGutter + 72, // balanced for iOS/Android after per-platform extra
             }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           >
@@ -191,7 +193,7 @@ export default function TimesheetScreen() {
             pointerEvents="box-none"
             style={[
               styles.floatingContainer,
-              { bottom: bottomGutter + 8 } // nudge above iOS tab bar highlight / Android navbar
+              { bottom: bottomGutter + bottomNudge }
             ]}
           >
             <View
@@ -291,3 +293,4 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
 });
+}
