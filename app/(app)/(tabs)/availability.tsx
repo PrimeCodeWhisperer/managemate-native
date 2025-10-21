@@ -6,6 +6,7 @@ import WeekNavigator from '@/components/navigation/WeekNavigator';
 import { Colors } from '@/constants/Colors';
 import { DayAvailability, useAvailability } from '@/hooks/useAvailability';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { Ionicons } from '@expo/vector-icons'; // NEW for FAB icon
 import { addDays, formatISO } from 'date-fns';
 import React, { useState } from 'react';
 import {
@@ -14,12 +15,12 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+  TouchableOpacity
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AvailabilityScreen() {
+  const insets = useSafeAreaInsets(); // NEW
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
   
@@ -47,14 +48,8 @@ export default function AvailabilityScreen() {
       'Submit Availability',
       'This will save your availability for the selected week.\n\nAre you sure you want to proceed?',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'OK',
-          onPress: handleSaveAvailability,
-        },
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'OK', onPress: handleSaveAvailability },
       ]
     );
   };
@@ -64,7 +59,7 @@ export default function AvailabilityScreen() {
     try {
       await saveAvailability(true);
     } catch {
-      // Error is already handled in saveAvailability
+      // handled inside saveAvailability
     } finally {
       setSupabaseLoading(false);
     }
@@ -73,7 +68,6 @@ export default function AvailabilityScreen() {
   const openDayModal = (day: Date) => {
     const dateStr = formatISO(day, { representation: 'date' });
     const dayAvailability = timeMap[dateStr] || { available: false };
-
     setSelectedDay(day);
     setTempAvailability(dayAvailability);
     setShowModal(true);
@@ -83,7 +77,6 @@ export default function AvailabilityScreen() {
     if (!selectedDay) return;
     const dateStr = formatISO(selectedDay, { representation: 'date' });
 
-    // Create a proper DayAvailability object
     const updatedAvailability: DayAvailability = {
       available: tempAvailability.available,
       timeSlots: tempAvailability.timeSlots || [],
@@ -107,17 +100,20 @@ export default function AvailabilityScreen() {
 
   return (
     <ErrorBoundary>
-      <ThemedView style={[styles.container]}>
-        <WeekNavigator
-          weekStart={weekStart}
-          onNavigate={dir => setWeekStart(d => addDays(d, dir === 'prev' ? -7 : 7))}
-          theme={theme}
-        />
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'right']}>
+        <ThemedView style={styles.container}>
+          <WeekNavigator
+            weekStart={weekStart}
+            onNavigate={dir => setWeekStart(d => addDays(d, dir === 'prev' ? -7 : 7))}
+            theme={theme}
+          />
 
-        <View style={styles.content}>
           <ScrollView
-            style={[styles.daysList]}
+            style={styles.daysList}
             showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingBottom: insets.bottom*1.7, // Extra space for FAB
+            }}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
@@ -138,63 +134,70 @@ export default function AvailabilityScreen() {
             })}
           </ScrollView>
 
-          <View style={[styles.buttonContainer, { backgroundColor: theme.card}]}>
-            <TouchableOpacity
-              style={[
-                styles.submitButton,
-                { backgroundColor: theme.primary },
-                (supabaseLoading || submitting) && styles.disabledButton
-              ]}
-              onPress={showSaveConfirmation}
-              disabled={supabaseLoading || submitting}
-            >
-              {(supabaseLoading || submitting) ? (
-                <ActivityIndicator color={theme.primaryForeground} size="small" />
-              ) : (
-                <Text 
-                  style={[styles.buttonText, { color: theme.primaryForeground }]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit={true}
-                >
-                  Submit Availability
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
+          {/* Modern Floating Action Button */}
+          <TouchableOpacity
+            style={[
+              styles.floatingButton,
+              {
+                backgroundColor: theme.primary,
+                bottom: insets.bottom *2 , // Positioned above tab bar with safe area
+                shadowColor: theme.shadow,
+              },
+              (supabaseLoading || submitting) && styles.disabledButton
+            ]}
+            onPress={showSaveConfirmation}
+            disabled={supabaseLoading || submitting}
+            activeOpacity={0.8}
+          >
+            {(supabaseLoading || submitting) ? (
+              <ActivityIndicator color={theme.primaryForeground} size="small" />
+            ) : (
+              <Ionicons name="checkmark" size={20} color={theme.primaryForeground} />
+            )}
+          </TouchableOpacity>
 
-        <AvailabilityModal
-          visible={showModal}
-          selectedDay={selectedDay}
-          availability={tempAvailability}
-          setAvailability={(newAvailability) => {
-            // Log each property to see what the modal is providing
-            const modalData = newAvailability as any;
-
-            // Check for any other time-related properties
-            Object.keys(modalData).forEach(key => {
-              if (key.toLowerCase().includes('time') || key.toLowerCase().includes('slot')) {
-
-              }
-            });
-
-
-            setTempAvailability(newAvailability);
-          }}
-          onClose={() => setShowModal(false)}
-          onSave={saveDayAvailability}
-          theme={theme}
-        />
-      </ThemedView>
-    </ErrorBoundary>
-  );
+          <AvailabilityModal
+            visible={showModal}
+            selectedDay={selectedDay}
+            availability={tempAvailability}
+            setAvailability={setTempAvailability}
+            onClose={() => setShowModal(false)}
+            onSave={saveDayAvailability}
+            theme={theme}
+          />
+</ThemedView>
+      </SafeAreaView>
+    </ErrorBoundary>  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 8,
+    paddingTop: 0,
   },
+  daysList: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  // Modern Floating Action Button (FAB)
+  floatingButton: {
+    position: 'absolute',
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8, // Android shadow
+    shadowOffset: { width: 0, height: 4 }, // iOS shadow
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    zIndex: 1000, // Ensure it appears above other elements
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  // Remove old button styles
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -210,53 +213,5 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
-  },
-  daysList: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  content: {
-    flex: 1,
-  },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.1)',
-
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  saveButton: {
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  submitButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    minHeight: 48, // Ensure minimum touch target size
-  },
-  debugButton: {
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  disabledButton: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    flexShrink: 1, // Allow text to shrink if needed
   },
 });

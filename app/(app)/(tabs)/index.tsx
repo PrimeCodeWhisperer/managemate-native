@@ -11,28 +11,41 @@ import { useShifts } from '@/hooks/useShifts';
 import { supabase } from '@/supabase';
 import { Link } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Button, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Button,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'; // NEW
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets(); // NEW
+
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [clockStart, setClockStart] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { profile } = useProfile();
-  // Get both upcoming shifts and open shifts
+
   const {
-    shifts: upcomingShifts, // Rename this
-    loading: upcomingLoading, // Add this
+    shifts: upcomingShifts,
+    loading: upcomingLoading,
     refresh: refreshUpcoming,
   } = useShifts('upcoming');
-  
+
   const {
     shifts: openShifts,
     loading: openLoading,
     error: openError,
     refresh: refreshOpen,
   } = useShifts('open');
-  
+
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
 
@@ -53,16 +66,12 @@ export default function HomeScreen() {
         .maybeSingle();
 
       if (!error && activeShift) {
-        // There's an active shift in the database
         setIsClockedIn(true);
-        
-        // Parse time from database and create timestamp for today
         const [hours, minutes] = activeShift.start_time.split(':').map(Number);
         const todayStart = new Date();
         todayStart.setHours(hours, minutes, 0, 0);
         setClockStart(todayStart.getTime());
       } else {
-        // No active shift
         setIsClockedIn(false);
         setClockStart(null);
       }
@@ -75,17 +84,13 @@ export default function HomeScreen() {
     }
   }, [profile?.id]);
 
-  // Load clock status from database only
   useEffect(() => {
     loadClockStatusFromDatabase();
   }, [loadClockStatusFromDatabase]);
 
   const handleClockStatusChange = async () => {
     try {
-      // Refresh the clock status from database after any clock operations
       await loadClockStatusFromDatabase();
-      
-      // Refresh shifts after clocking operations to update the UI
       refresh();
     } catch (e: any) {
       Alert.alert('Error', e.message ?? 'Failed to update clock status');
@@ -93,39 +98,25 @@ export default function HomeScreen() {
   };
 
   const getDisplayName = () => {
-    if (profile?.first_name && profile?.last_name) {
-      return `${profile.first_name} ${profile.last_name}`;
-    }
-    if (profile?.first_name) {
-      return profile.first_name;
-    }
-    if (profile?.username) {
-      return profile.username;
-    }
+    if (profile?.first_name && profile?.last_name) return `${profile.first_name} ${profile.last_name}`;
+    if (profile?.first_name) return profile.first_name;
+    if (profile?.username) return profile.username;
     return 'User';
   };
 
-  // Filter open shifts to show only future ones and limit to 3
   const getFutureOpenShifts = () => {
     if (!openShifts) return [];
-    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
     return openShifts;
   };
 
   const futureOpenShifts = getFutureOpenShifts();
 
-  // Update refresh function to refresh both
   const refresh = async () => {
     setRefreshing(true);
     try {
-      await Promise.all([
-        refreshUpcoming(),
-        refreshOpen(),
-        loadClockStatusFromDatabase()
-      ]);
+      await Promise.all([refreshUpcoming(), refreshOpen(), loadClockStatusFromDatabase()]);
     } catch (error) {
       console.error('Failed to refresh data:', error);
     } finally {
@@ -133,17 +124,12 @@ export default function HomeScreen() {
     }
   };
 
-  // Show loading while retrieving clock status
   if (isLoading) {
     return (
       <View
         style={[
           styles.container,
-          {
-            backgroundColor: theme.background,
-            justifyContent: 'center',
-            alignItems: 'center',
-          },
+          { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' },
         ]}
       >
         <ActivityIndicator size="large" color={theme.foreground} />
@@ -153,132 +139,105 @@ export default function HomeScreen() {
 
   return (
     <ErrorBoundary>
-      <ThemedView style={[styles.container, { backgroundColor: theme.background},]}>
-        <ScrollView
-          style={[styles.scrollView]}
-          showsVerticalScrollIndicator={false}
-          
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={refresh} />
-          }
-        >
-        {/* Welcome Section */}
-        <WelcomeSection displayName={getDisplayName()} />
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'right']}>{/* ensures top is below notch/status bar */}
+        <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              // ensure top/bottom content clears status bar + native tab bar
+              paddingTop:insets.top,
+              paddingBottom: insets.bottom*1.7,
+            }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
+          >
+            {/* Welcome Section */}
+            <WelcomeSection displayName={getDisplayName()} />
 
-        {/* Time Tracking Section */}
-        <TimeTrackingCard
-          isClockedIn={isClockedIn}
-          onStatusChange={handleClockStatusChange}
-          startTime={clockStart}
-          shifts={upcomingShifts}
-          loading={upcomingLoading}
-        />
+            {/* Time Tracking Section */}
+            <TimeTrackingCard
+              isClockedIn={isClockedIn}
+              onStatusChange={handleClockStatusChange}
+              startTime={clockStart}
+              shifts={upcomingShifts}
+              loading={upcomingLoading}
+            />
 
-        {/* Open Shifts Section */}
-        <View style={styles.openShiftsSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.foreground }]}>Open Shifts</Text>
-            <Link href="/open-shifts" asChild>
-              <TouchableOpacity>
-                <Text style={[styles.viewAllButton, { color: theme.foreground }]}>View All</Text>
-              </TouchableOpacity>
-            </Link>
-          </View>
-
-          <View style={styles.shiftsContainer}>
-          {openLoading ? (
-              <ActivityIndicator />
-            ) : openError ? (
-              <View style={styles.errorContainer}>
-                <Text style={[styles.errorText, { color: theme.foreground }]}>{openError}</Text>
-                <Button title="Retry" onPress={refresh} />
+            {/* Open Shifts Section */}
+            <View style={styles.openShiftsSection}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: theme.foreground }]}>Open Shifts</Text>
+                <Link href="/open-shifts" asChild>
+                  <TouchableOpacity>
+                    <Text style={[styles.viewAllButton, { color: theme.foreground }]}>View All</Text>
+                  </TouchableOpacity>
+                </Link>
               </View>
-            ) : futureOpenShifts.length > 0 ? (
-               futureOpenShifts.map((shift) => <ShiftCard key={shift.id} shift={shift} onPickUp={refresh} />)
-            ) : (
-              <EmptyShifts theme={theme} />
-            )}
-          </View>
-        </View>
 
-        {/* Vacations Section */}
-        <View >
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.foreground }]}>Vacations</Text>
-            <Link href="/vacations" asChild>
-              <TouchableOpacity>
-                <Text style={[styles.viewAllButton, { color: theme.foreground }]}>Request</Text>
-              </TouchableOpacity>
-            </Link>
-          </View>
+              <View style={styles.shiftsContainer}>
+                {openLoading ? (
+                  <ActivityIndicator />
+                ) : openError ? (
+                  <View style={styles.errorContainer}>
+                    <Text style={[styles.errorText, { color: theme.foreground }]}>{openError}</Text>
+                    <Button title="Retry" onPress={refresh} />
+                  </View>
+                ) : futureOpenShifts.length > 0 ? (
+                  futureOpenShifts.map((shift) => (
+                    <ShiftCard key={shift.id} shift={shift} onPickUp={refresh} />
+                  ))
+                ) : (
+                  <EmptyShifts theme={theme} />
+                )}
+              </View>
+            </View>
 
-          <VacationCard />
-        </View>
-        </ScrollView>
-      </ThemedView>
+            {/* Vacations Section */}
+            <View>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: theme.foreground }]}>Vacations</Text>
+                <Link href="/vacations" asChild>
+                  <TouchableOpacity>
+                    <Text style={[styles.viewAllButton, { color: theme.foreground }]}>Request</Text>
+                  </TouchableOpacity>
+                </Link>
+              </View>
+
+              <VacationCard />
+            </View>
+          </ScrollView>
+        </ThemedView>
+      </SafeAreaView>
     </ErrorBoundary>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 24,
-  },
-  openShiftsSection: {
-    marginBottom: 32,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  viewAllButton: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  shiftsContainer: {
-    gap: 12,
-  },
-  errorContainer: {
-    alignItems: 'center',
-    gap: 8,
-    padding: 16,
-  },
-  errorText: {
-    marginBottom: 8,
-  },
-  emptyShifts: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 24,
-    alignItems: 'center',
-  },
-  emptyShiftsTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  emptyShiftsSubtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-  },
+  container: { flex: 1 },
+  // paddingTop handled by safe-area insets
+  scrollView: { flex: 1, paddingHorizontal: 16 },
+  openShiftsSection: { marginBottom: 32 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  sectionTitle: { fontSize: 18, fontWeight: '600' },
+  viewAllButton: { fontSize: 14, fontWeight: '500' },
+  shiftsContainer: { gap: 12 },
+  errorContainer: { alignItems: 'center', gap: 8, padding: 16 },
+  errorText: { marginBottom: 8 },
+  emptyShifts: { borderWidth: 1, borderRadius: 8, padding: 24, alignItems: 'center' },
+  emptyShiftsTitle: { fontSize: 16, fontWeight: '500', marginBottom: 4 },
+  emptyShiftsSubtitle: { fontSize: 14, textAlign: 'center' },
 });
 
 function EmptyShifts({ theme }: { theme: typeof Colors.light }) {
   return (
-    <View style={[styles.emptyShifts, { backgroundColor: theme.background, borderColor: theme.secondary }]}>
+    <View
+      style={[
+        styles.emptyShifts,
+        { backgroundColor: theme.background, borderColor: theme.secondary },
+      ]}
+    >
       <Text style={[styles.emptyShiftsTitle, { color: theme.foreground }]}>No open shifts</Text>
-      <Text style={[styles.emptyShiftsSubtitle, { color: theme.icon }]}> 
+      <Text style={[styles.emptyShiftsSubtitle, { color: theme.icon }]}>
         {"You're all caught up for now"}
       </Text>
     </View>

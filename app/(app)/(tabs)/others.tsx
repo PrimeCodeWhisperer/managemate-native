@@ -8,7 +8,18 @@ import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Alert, Button, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Button,
+  Image,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'; // NEW
 
 interface MenuItem {
   id: string;
@@ -20,32 +31,29 @@ interface MenuItem {
 }
 
 export default function OthersScreen() {
+  const insets = useSafeAreaInsets(); // NEW
+
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
   const { profile, loading, error, refresh } = useProfile();
   const [refreshing, setRefreshing] = React.useState(false);
 
   const handleSignOut = async () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const { error } = await supabase.auth.signOut();
-              if (error) throw error;
-              // Navigation will be handled by your auth context
-            } catch (e: any) {
-              Alert.alert('Error', e.message ?? 'Failed to sign out');
-            }
-          },
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const { error } = await supabase.auth.signOut();
+            if (error) throw error;
+          } catch (e: any) {
+            Alert.alert('Error', e.message ?? 'Failed to sign out');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const menuItems: MenuItem[] = [
@@ -114,32 +122,18 @@ export default function OthersScreen() {
   ];
 
   const getDisplayName = () => {
-    if (profile?.first_name && profile?.last_name) {
-      return `${profile.first_name} ${profile.last_name}`;
-    }
-    if (profile?.first_name) {
-      return profile.first_name;
-    }
-    if (profile?.username) {
-      return profile.username;
-    }
+    if (profile?.first_name && profile?.last_name) return `${profile.first_name} ${profile.last_name}`;
+    if (profile?.first_name) return profile.first_name;
+    if (profile?.username) return profile.username;
     return 'User';
   };
 
-  const getEmployeeId = () => {
-    if (profile?.id) {
-      return `MM${profile.id.slice(-4).toUpperCase()}`;
-    }
-    return 'MM****';
-  };
+  const getEmployeeId = () => (profile?.id ? `MM${profile.id.slice(-4).toUpperCase()}` : 'MM****');
 
-  const getAvatarSource = () => {
-    if (profile?.avatar_url) {
-      return { uri: profile.avatar_url };
-    }
-    // Default avatar fallback
-    return { uri: 'https://via.placeholder.com/100/E5E7EB/9CA3AF?text=U' };
-  };
+  const getAvatarSource = () =>
+    profile?.avatar_url
+      ? { uri: profile.avatar_url }
+      : { uri: 'https://via.placeholder.com/100/E5E7EB/9CA3AF?text=U' };
 
   if (error) {
     return (
@@ -158,8 +152,8 @@ export default function OthersScreen() {
     setRefreshing(true);
     try {
       await refresh();
-    } catch (error) {
-      console.error('Failed to refresh profile:', error);
+    } catch (e) {
+      console.error('Failed to refresh profile:', e);
     } finally {
       setRefreshing(false);
     }
@@ -167,106 +161,94 @@ export default function OthersScreen() {
 
   return (
     <ErrorBoundary>
-      <ThemedView style={[styles.container]}>
-
-      {/* Main Content */}
-      <ScrollView
-        style={styles.mainContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {/* Profile Section */}
-        {loading ? (
-          <ProfileSkeleton />
-        ) : (
-          <TouchableOpacity
-            style={[styles.profileSection, { backgroundColor: theme.secondary }]}
-            onPress={() => Alert.alert('Coming Soon', 'Profile editing will be available soon')}
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'right']}>{/* NEW: handle top notch/status bar */}
+        <ThemedView style={[styles.container]}>
+          {/* Main Content */}
+          <ScrollView
+            style={styles.mainContent}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingTop: insets.top,      // NEW: top safe area
+              paddingBottom: insets.bottom*1.7 // NEW: bottom safe area above native tab bar
+            }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           >
-            <Image
-              source={getAvatarSource()}
-              style={styles.avatar}
-            />
-            <View style={styles.profileInfo}>
-              <ThemedText style={styles.profileName}>
-                {getDisplayName()}
-              </ThemedText>
-              <Text style={[styles.profileId, { color: theme.icon }]}>
-                Employee ID: {getEmployeeId()}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={theme.icon} />
-          </TouchableOpacity>
-        )}
-
-        {/* Menu Items */}
-        <View style={styles.menuItems}>
-          {menuItems.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={[
-                styles.menuItem,
-                {
-                  backgroundColor: theme.background,
-                  borderColor: theme.secondary,
-                  shadowColor: theme.shadow,
-                },
-              ]}
-              onPress={item.onPress}
-              disabled={!item.onPress}
-            >
-              <View style={styles.menuItemLeft}>
-                <View style={[styles.menuItemIcon, { backgroundColor: theme.secondary }]}>
-                  <Ionicons name={item.icon} size={20} color={theme.foreground} />
+            {/* Profile Section */}
+            {loading ? (
+              <ProfileSkeleton />
+            ) : (
+              <TouchableOpacity
+                style={[styles.profileSection, { backgroundColor: theme.secondary }]}
+                onPress={() => Alert.alert('Coming Soon', 'Profile editing will be available soon')}
+              >
+                <Image source={getAvatarSource()} style={styles.avatar} />
+                <View style={styles.profileInfo}>
+                  <ThemedText style={styles.profileName}>{getDisplayName()}</ThemedText>
+                  <Text style={[styles.profileId, { color: theme.icon }]}>Employee ID: {getEmployeeId()}</Text>
                 </View>
-                <View style={styles.menuItemText}>
-                  <ThemedText style={styles.menuItemTitle}>
-                    {item.title}
-                  </ThemedText>
-                  <Text style={[styles.menuItemSubtitle, { color: theme.icon }]}>
-                    {item.subtitle}
-                  </Text>
-                </View>
-              </View>
-              {item.onPress && (
                 <Ionicons name="chevron-forward" size={16} color={theme.icon} />
-              )}
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            )}
 
-          {/* Sign Out Button */}
-          <TouchableOpacity
-            style={[
-              styles.signOutButton,
-              styles.menuItem,
-              {
-                borderColor: theme.destructiveBackground,
-                backgroundColor: theme.destructiveBackground,
-                shadowColor: theme.shadow,
-              },
-            ]}
-            onPress={handleSignOut}
-          >
-            <View style={styles.menuItemLeft}>
-              <View style={[styles.signOutIcon, { backgroundColor: theme.destructiveBackground }]}>
-                <Ionicons name="log-out-outline" size={20} color={theme.destructive} />
-              </View>
-              <View style={styles.menuItemText}>
-                <Text style={[styles.signOutTitle, { color: theme.destructive }]}>
-                  Sign Out
-                </Text>
-                <Text style={[styles.signOutSubtitle, { color: theme.destructiveMuted }]}>
-                  Log out of your account
-                </Text>
-              </View>
+            {/* Menu Items */}
+            <View style={styles.menuItems}>
+              {menuItems.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[
+                    styles.menuItem,
+                    {
+                      backgroundColor: theme.background,
+                      borderColor: theme.secondary,
+                      shadowColor: theme.shadow,
+                    },
+                  ]}
+                  onPress={item.onPress}
+                  disabled={!item.onPress}
+                >
+                  <View style={styles.menuItemLeft}>
+                    <View style={[styles.menuItemIcon, { backgroundColor: theme.secondary }]}>
+                      <Ionicons name={item.icon} size={20} color={theme.foreground} />
+                    </View>
+                    <View style={styles.menuItemText}>
+                      <ThemedText style={styles.menuItemTitle}>{item.title}</ThemedText>
+                      <Text style={[styles.menuItemSubtitle, { color: theme.icon }]}>{item.subtitle}</Text>
+                    </View>
+                  </View>
+                  {item.onPress && <Ionicons name="chevron-forward" size={16} color={theme.icon} />}
+                </TouchableOpacity>
+              ))}
+
+              {/* Sign Out Button */}
+              <TouchableOpacity
+                style={[
+                  styles.signOutButton,
+                  styles.menuItem,
+                  {
+                    borderColor: theme.destructiveBackground,
+                    backgroundColor: theme.destructiveBackground,
+                    shadowColor: theme.shadow,
+                  },
+                ]}
+                onPress={handleSignOut}
+              >
+                <View style={styles.menuItemLeft}>
+                  <View style={[styles.signOutIcon, { backgroundColor: theme.destructiveBackground }]}>
+                    <Ionicons name="log-out-outline" size={20} color={theme.destructive} />
+                  </View>
+                  <View style={styles.menuItemText}>
+                    <Text style={[styles.signOutTitle, { color: theme.destructive }]}>Sign Out</Text>
+                    <Text style={[styles.signOutSubtitle, { color: theme.destructiveMuted }]}>
+                      Log out of your account
+                    </Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={theme.destructive} />
+              </TouchableOpacity>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={theme.destructive} />
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </ThemedView>
+          </ScrollView>
+        </ThemedView>
+      </SafeAreaView>{/* NEW */}
     </ErrorBoundary>
   );
 }
@@ -274,7 +256,7 @@ export default function OthersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 8,
+    paddingTop: 0, // top is handled via safe-area insets
   },
   errorContainer: {
     flex: 1,
@@ -291,16 +273,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
   },
-  headerLeft: {
-    width: 32,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  headerRight: {
-    width: 32,
-  },
+  headerLeft: { width: 32 },
+  headerTitle: { fontSize: 20, fontWeight: '600' },
+  headerRight: { width: 32 },
   mainContent: {
     flex: 1,
     paddingHorizontal: 16,
@@ -315,26 +290,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 32,
   },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: 16,
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  profileName: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  profileId: {
-    fontSize: 14,
-    marginTop: 2,
-  },
-  menuItems: {
-    gap: 12,
-  },
+  avatar: { width: 48, height: 48, borderRadius: 24, marginRight: 16 },
+  profileInfo: { flex: 1 },
+  profileName: { fontSize: 16, fontWeight: '600' },
+  profileId: { fontSize: 14, marginTop: 2 },
+  menuItems: { gap: 12 },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -347,11 +307,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 1,
   },
-  menuItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
+  menuItemLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   menuItemIcon: {
     width: 40,
     height: 40,
@@ -360,20 +316,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  menuItemText: {
-    flex: 1,
-  },
-  menuItemTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  menuItemSubtitle: {
-    fontSize: 14,
-    marginTop: 2,
-  },
-  signOutButton: {
-    marginTop: 24,
-  },
+  menuItemText: { flex: 1 },
+  menuItemTitle: { fontSize: 16, fontWeight: '500' },
+  menuItemSubtitle: { fontSize: 14, marginTop: 2 },
+  signOutButton: { marginTop: 24 },
   signOutIcon: {
     width: 40,
     height: 40,
@@ -382,12 +328,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  signOutTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  signOutSubtitle: {
-    fontSize: 14,
-    marginTop: 2,
-  },
+  signOutTitle: { fontSize: 16, fontWeight: '500' },
+  signOutSubtitle: { fontSize: 14, marginTop: 2 },
 });
