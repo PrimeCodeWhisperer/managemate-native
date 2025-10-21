@@ -105,7 +105,7 @@ export default function AvailabilityScreen() {
 
   return (
     <ErrorBoundary>
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'right']}>
+      <SafeAreaView style={[{ flex: 1 }, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'right']}>
         <ThemedView style={styles.container}>
           <WeekNavigator
             weekStart={weekStart}

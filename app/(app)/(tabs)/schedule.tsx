@@ -101,7 +101,7 @@ export default function ScheduleScreen() {
 
   return (
     <ErrorBoundary>
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>{/* NEW */}
+      <SafeAreaView style={[{ flex: 1 }, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>{/* NEW */}
         <ThemedView style={[styles.container]}>
           <ScrollView
             showsVerticalScrollIndicator={false}

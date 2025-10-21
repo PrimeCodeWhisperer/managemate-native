@@ -153,7 +153,7 @@ export default function HomeScreen() {
 
   return (
     <ErrorBoundary>
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'right']}>{/* ensures top is below notch/status bar */}
+      <SafeAreaView style={[{ flex: 1 }, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'right']}>{/* ensures top is below notch/status bar */}
         <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
           <ScrollView
             style={styles.scrollView}

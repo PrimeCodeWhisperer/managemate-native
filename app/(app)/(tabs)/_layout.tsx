@@ -1,28 +1,32 @@
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { Entypo } from '@expo/vector-icons';
 import { Icon, Label, NativeTabs, VectorIcon } from 'expo-router/unstable-native-tabs';
 import { DynamicColorIOS, Platform } from 'react-native';
 
 export default function TabLayout() {
+  const scheme = useColorScheme() ?? 'light';
+  const theme = Colors[scheme];
+
   const labelColor =
     Platform.OS === 'ios'
       ? DynamicColorIOS({ light: 'black', dark: 'white' })
-      : '#666666';
+      : theme.foreground;
+
+  const tintColor =
+    Platform.OS === 'ios'
+      ? DynamicColorIOS({ light: '#007AFF', dark: '#0A84FF' })
+      : theme.primary;
 
   return (
     <NativeTabs
-      blurEffect='systemDefault'
-      // Helps avoid a transparent bar on iOS with scroll views
+      blurEffect={Platform.OS === 'ios' ? 'systemMaterial' : undefined}
       disableTransparentOnScrollEdge
-      // Give a non-transparent indicator so you can verify selection
-      indicatorColor="#007AFF33"
-      // Explicit label + icon tinting so it’s visible even without liquid
+      indicatorColor={Platform.OS === 'ios' ? "#007AFF33" : `${theme.primary}33`}
       labelStyle={{ color: labelColor }}
-      tintColor={
-        Platform.OS === 'ios'
-          ? DynamicColorIOS({ light: '#007AFF', dark: '#0A84FF' })
-          : '#007AFF'
-      }
+      tintColor={tintColor}
       labelVisibilityMode="labeled"
+      backgroundColor={theme.background}
     >
       <NativeTabs.Trigger name="index">
         {Platform.select({

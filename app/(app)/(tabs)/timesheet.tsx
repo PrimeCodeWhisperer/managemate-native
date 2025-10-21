@@ -106,7 +106,7 @@ useFocusEffect(
 
   return (
     <ErrorBoundary>
-      <SafeAreaView style={{ flex: 1 }} edges={['top','left','right']}>
+      <SafeAreaView style={[{ flex: 1 }, { backgroundColor: theme.background }]} edges={['top','left','right']}>
         <ThemedView> 
           {/* Month Navigator */}
           <View style={styles.monthNavigator}>

@@ -163,7 +163,7 @@ export default function OthersScreen() {
 
   return (
     <ErrorBoundary>
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'right']}>{/* NEW: handle top notch/status bar */}
+      <SafeAreaView style={[{ flex: 1 }, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'right']}>{/* NEW: handle top notch/status bar */}
         <ThemedView style={[styles.container]}>
           {/* Main Content */}
           <ScrollView
@@ -239,8 +239,8 @@ export default function OthersScreen() {
                     <Ionicons name="log-out-outline" size={20} color={theme.destructive} />
                   </View>
                   <View style={styles.menuItemText}>
-                    <Text style={[styles.signOutTitle, { color: theme.destructive }]}>Sign Out</Text>
-                    <Text style={[styles.signOutSubtitle, { color: theme.destructiveMuted }]}>
+                    <Text style={[styles.signOutTitle, { color: theme.text }]}>Sign Out</Text>
+                    <Text style={[styles.signOutSubtitle, { color: theme.text }]}>
                       Log out of your account
                     </Text>
                   </View>
