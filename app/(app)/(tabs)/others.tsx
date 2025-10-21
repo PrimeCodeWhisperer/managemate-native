@@ -4,10 +4,12 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useNativeTabsBottomGutter } from '@/hooks/useNativeTabsBottomGutter';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
+
 import {
   Alert,
   Button,
@@ -20,7 +22,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'; // NEW
-
 interface MenuItem {
   id: string;
   title: string;
@@ -37,6 +38,7 @@ export default function OthersScreen() {
   const theme = Colors[scheme];
   const { profile, loading, error, refresh } = useProfile();
   const [refreshing, setRefreshing] = React.useState(false);
+  const { bottomGutter } = useNativeTabsBottomGutter({ extra: 20 }); // Extra padding for scroll content
 
   const handleSignOut = async () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -169,7 +171,7 @@ export default function OthersScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
               paddingTop: insets.top,      // NEW: top safe area
-              paddingBottom: insets.bottom*1.7 // NEW: bottom safe area above native tab bar
+              paddingBottom: bottomGutter // NEW: bottom safe area above native tab bar
             }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           >

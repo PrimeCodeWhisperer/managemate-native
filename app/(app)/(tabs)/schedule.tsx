@@ -7,11 +7,13 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useNativeTabsBottomGutter } from '@/hooks/useNativeTabsBottomGutter';
 import { useShifts } from '@/hooks/useShifts';
 import { addMonths, format, formatISO, getDay, getDaysInMonth, isSameDay, parseISO, startOfMonth, subMonths } from 'date-fns';
 import React, { useMemo, useState } from 'react';
 import { Alert, Button, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+
 
 export default function ScheduleScreen() {
   const insets = useSafeAreaInsets(); // NEW
@@ -21,6 +23,7 @@ export default function ScheduleScreen() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>(formatISO(new Date(), { representation: 'date' }));
+  const { bottomGutter } = useNativeTabsBottomGutter({ extra: 20 }); // Extra padding for scroll content
 
   const monthShifts = useMemo(() => {
     return shifts.filter((shift) => {
@@ -97,7 +100,7 @@ export default function ScheduleScreen() {
         <ThemedView style={[styles.container]}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: insets.bottom*1.7 }} // NEW
+            contentContainerStyle={{ paddingBottom: bottomGutter }} // NEW
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           >
             <MonthNavigator currentDate={currentDate} shiftCount={monthShifts.length} onNavigate={navigateMonth} theme={theme} />

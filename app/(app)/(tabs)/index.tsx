@@ -6,6 +6,7 @@ import VacationCard from '@/components/cards/VacationCard';
 import WelcomeSection from '@/components/common/WelcomeSection';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useNativeTabsBottomGutter } from '@/hooks/useNativeTabsBottomGutter';
 import { useProfile } from '@/hooks/useProfile';
 import { useShifts } from '@/hooks/useShifts';
 import { supabase } from '@/supabase';
@@ -26,6 +27,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets(); // NEW
+  const { bottomGutter } = useNativeTabsBottomGutter({ extra: 20 }); // Extra padding for scroll content
 
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [clockStart, setClockStart] = useState<number | null>(null);
@@ -147,7 +149,7 @@ export default function HomeScreen() {
             contentContainerStyle={{
               // ensure top/bottom content clears status bar + native tab bar
               paddingTop:insets.top,
-              paddingBottom: insets.bottom*1.7,
+              paddingBottom: bottomGutter,
             }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
           >
