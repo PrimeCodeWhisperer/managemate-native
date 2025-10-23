@@ -10,6 +10,7 @@ export interface Shift {
   role?: string;
   status?: string;
   urgent?: boolean;
+  approved?:boolean;
   user_id?: string; // For upcoming/past shifts
 }
 

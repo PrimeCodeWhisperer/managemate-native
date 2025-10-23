@@ -9,7 +9,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 interface Props {
   isClockedIn: boolean;
-  onStatusChange: () => Promise<void> | void;
+  onStatusChange: (immediateClockInTime?: number) => Promise<void> | void;
   startTime: number | null;
   shifts: Shift[]; // Add this prop
   loading?: boolean; // Add this prop
@@ -107,7 +107,7 @@ export default function TimeTrackingCard({ isClockedIn, onStatusChange, startTim
         ]}
       >
         <View style={styles.cardHeader}>
-          <Text style={[styles.cardTitle, { color: theme.foreground }]}>Time Tracking</Text>
+          <Text style={[styles.cardTitle, { color: theme.foreground }]}>{'Upcoming Shift'}</Text>
           <View style={styles.statusContainer}>
             <FontAwesome
               name="clock-o"
@@ -116,7 +116,7 @@ export default function TimeTrackingCard({ isClockedIn, onStatusChange, startTim
               style={styles.statusIcon}
             />
             <Text style={[styles.statusText, { color: theme.icon }]}>
-              {isClockedIn ? 'Clocked in' : 'Ready to clock in'}
+              {isClockedIn ? 'Clocked in' : todayShift?.start_time}
             </Text>
           </View>
         </View>
