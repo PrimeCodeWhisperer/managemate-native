@@ -217,13 +217,6 @@ Contributions are welcome! Please ensure:
 - Error handling is implemented
 - Components are accessible
 
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
-## Support
-
-For issues or questions, please [create an issue](link-to-issues) or contact [support email].
 
 ---
 
