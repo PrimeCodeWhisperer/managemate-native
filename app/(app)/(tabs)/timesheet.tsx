@@ -40,6 +40,7 @@ export default function TimesheetScreen() {
 
   const totalHours = useMemo(() => {
     return monthShifts.reduce((total, shift) => {
+      if (!shift.end_time) return 0;
       const start = parseISO(`2000-01-01T${shift.start_time}`);
       const end = parseISO(`2000-01-01T${shift.end_time}`);
       const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
@@ -74,19 +75,20 @@ export default function TimesheetScreen() {
     return `${hours}h`;
   };
 
-  const getShiftStatus = (startTime: string, endTime?: string) => {
-    if (!endTime) {
+  const getShiftStatus = (shift:Shift) => {
+    if (!shift.end_time) {
       return { status: 'In Progress', color: theme.info, backgroundColor: theme.infoBackground };
     }
-    const start = parseISO(`2000-01-01T${startTime}`);
-    const end = parseISO(`2000-01-01T${endTime}`);
+    const start = parseISO(`2000-01-01T${shift.start_time}`);
+    const end = parseISO(`2000-01-01T${shift.end_time}`);
     const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
     if (hours > 8) return { status: 'Overtime', color: theme.warning, backgroundColor: theme.warningBackground };
+    if (!shift.approved) return { status: 'Pending', color: theme.warning, backgroundColor: theme.warningBackground }
     return { status: 'Completed', color: theme.success, backgroundColor: theme.successBackground };
   };
 useFocusEffect(
     useCallback(() => {
-      onRefresh();
+        if(!refreshing) onRefresh();
     }, [])
   );
   if (error) {
@@ -152,7 +154,7 @@ useFocusEffect(
                     </ThemedText>
                   </View>
                   {dayShifts.map((shift) => {
-                    const shiftStatus = getShiftStatus(shift.start_time, shift.end_time);
+                    const shiftStatus = getShiftStatus(shift);
                     return (
                       <View key={shift.id} style={[styles.shiftCard, { backgroundColor: theme.background, borderColor: theme.secondary, shadowColor: theme.shadow }]}> 
                         <View style={styles.shiftCardHeader}>

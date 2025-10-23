@@ -86,7 +86,6 @@ export default function HomeScreen() {
       setIsLoading(false);
     }
   }, [profile?.id]);
-
   useEffect(() => {
     loadClockStatusFromDatabase();
   }, [loadClockStatusFromDatabase]);
@@ -174,7 +173,7 @@ export default function HomeScreen() {
               onStatusChange={handleClockStatusChange}
               startTime={clockStart}
               shifts={upcomingShifts}
-              loading={upcomingLoading}
+              //loading={upcomingLoading}
             />
 
             {/* Open Shifts Section */}

@@ -24,7 +24,7 @@ export default function CalendarDay({ day, selectedDate, onSelect, theme }: Prop
       style={[
         styles.calendarDay,
         day.hasShift && { backgroundColor: theme.foreground },
-        isSelected && [styles.selectedDay, { borderColor: theme.foreground }],
+        isSelected && [styles.selectedDay, { borderColor: theme.success }],
         !day.isCurrentMonth && styles.otherMonthDay,
       ]}
       onPress={() => day.isCurrentMonth && onSelect(day.date)}

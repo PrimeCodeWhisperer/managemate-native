@@ -16,7 +16,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const insets=useSafeAreaInsets()
   const router = useRouter();
 
