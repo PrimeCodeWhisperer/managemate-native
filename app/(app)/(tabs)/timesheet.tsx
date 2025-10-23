@@ -88,7 +88,7 @@ export default function TimesheetScreen() {
   };
 useFocusEffect(
     useCallback(() => {
-        if(!refreshing) onRefresh();
+        onRefresh();
     }, [])
   );
   if (error) {

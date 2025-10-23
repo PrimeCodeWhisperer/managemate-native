@@ -5,7 +5,7 @@ import { Shift } from '@/hooks/useShifts';
 import { FontAwesome } from '@expo/vector-icons';
 import { isSameDay, parseISO } from 'date-fns';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 interface Props {
   isClockedIn: boolean;
@@ -71,24 +71,24 @@ export default function TimeTrackingCard({ isClockedIn, onStatusChange, startTim
   };
 
   // Don't render the card if loading or no shift today (unless already clocked in)
-  if (loading) {
-    return (
-      <View style={styles.clockSection}>
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: theme.background,
-              borderColor: theme.secondary,
-              shadowColor: theme.shadow,
-            },
-          ]}
-        >
-          <ActivityIndicator size="small" color={theme.foreground} />
-        </View>
-      </View>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <View style={styles.clockSection}>
+  //       <View
+  //         style={[
+  //           styles.card,
+  //           {
+  //             backgroundColor: theme.background,
+  //             borderColor: theme.secondary,
+  //             shadowColor: theme.shadow,
+  //           },
+  //         ]}
+  //       >
+  //         <ActivityIndicator size="small" color={theme.foreground} />
+  //       </View>
+  //     </View>
+  //   );
+  // }
 
   if (!hasShiftToday && !isClockedIn) {
     return null; // Don't show the card if no shift today and not clocked in

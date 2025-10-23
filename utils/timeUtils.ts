@@ -1,4 +1,4 @@
-  export const roundTime = (time:string)=>{
+  export function roundTime (time:string){
     let hours=Number(time.split(':')[0])
     let minutes=Number(time.split(':')[1])
     let m = (Math.round(minutes/15) * 15) % 60;

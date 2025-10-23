@@ -49,3 +49,4 @@ credentials.json
 *.apk
 *.aab
 
+eas.json
