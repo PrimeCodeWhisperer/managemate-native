@@ -21,7 +21,6 @@ export default function ClockButton({ isClockedIn, onStatusChange, elapsedTime, 
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
   const { profile } = useProfile();
-  const [clockedInTime, setClockedInTime] = useState('');
   const loadCurrentShift = useCallback(async () => {
     try {
       const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
@@ -89,7 +88,6 @@ export default function ClockButton({ isClockedIn, onStatusChange, elapsedTime, 
         Alert.alert('Too early!', 'You can only start to clock in 15 minutes before your shift starts.');
         return;
       }
-      setClockedInTime(currentTime);
       // Create past_shifts record linked to the upcoming shift
       const { error: pastShiftError } = await supabase
         .from('past_shifts')
@@ -123,7 +121,16 @@ export default function ClockButton({ isClockedIn, onStatusChange, elapsedTime, 
 
     try {
       setLoading(true);
-      const startTime= roundTime(clockedInTime);
+
+      const {error: computedStartTimeError , data } = await supabase
+      .from('past_shifts')
+      .select('start_time')
+      .eq('id', currentShiftId)
+      .eq('user_id', profile.id)
+      .single();
+      if (computedStartTimeError) throw computedStartTimeError;
+
+      const startTime= roundTime(data.start_time);
       const endTime=roundTime(currentTime);
       // Update the past_shifts record with end time
       const { error: pastShiftError } = await supabase
