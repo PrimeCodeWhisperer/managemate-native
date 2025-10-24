@@ -56,7 +56,7 @@ export function useVacations() {
       }
       const { error } = await supabase
         .from('vacations_requests')
-        .insert({ employee_id: user.id, start_date, end_date });
+        .insert({ employee_id: user.id, start_date, end_date , status:'pending'});
       if (error) throw error;
       refresh();
     },
