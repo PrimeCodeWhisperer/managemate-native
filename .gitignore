@@ -50,3 +50,4 @@ credentials.json
 *.aab
 
 eas.json
+forAndroidBuild.md
