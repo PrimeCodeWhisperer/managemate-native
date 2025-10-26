@@ -5,7 +5,7 @@ import { Alert } from 'react-native';
 
 export interface TimeSlot {
   start: string;
-  end: string;
+  end: string|null;
 }
 
 export interface DayAvailability {

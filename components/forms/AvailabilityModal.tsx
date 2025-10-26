@@ -4,7 +4,7 @@ import { DayAvailability } from '@/hooks/useAvailability';
 import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import React from 'react';
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import TimeInputGroup from './TimeInputGroup';
 
 interface Props {
@@ -30,13 +30,14 @@ export default function AvailabilityModal({
   // Get current start/end times from timeSlots
   const currentStartTime = availability.timeSlots?.[0]?.start || '09:00';
   const currentEndTime = availability.timeSlots?.[0]?.end || '17:00';
+  const isOpenEnded = availability.timeSlots?.[0]?.end === null;
 
   const handleStartTimeChange = (time: string) => {
     
     setAvailability(prev => ({
       ...prev,
       available: true,
-      timeSlots: [{ start: time, end: currentEndTime }],
+      timeSlots: [{ start: time, end: isOpenEnded ? null : currentEndTime }],
     }));
   };
 
@@ -46,6 +47,14 @@ export default function AvailabilityModal({
       ...prev,
       available: true,
       timeSlots: [{ start: currentStartTime, end: time }],
+    }));
+  };
+
+  const handleOpenEndedToggle = () => {
+    setAvailability(prev => ({
+      ...prev,
+      available: true,
+      timeSlots: [{ start: currentStartTime, end: isOpenEnded ? '17:00' : null }],
     }));
   };
 
@@ -88,7 +97,7 @@ export default function AvailabilityModal({
           </TouchableOpacity>
         </View>
 
-        <View style={styles.modalContent}>
+        <ScrollView style={styles.modalContent}>
           {selectedDay && (
             <>
               <ThemedText style={styles.selectedDayText}>
@@ -127,18 +136,39 @@ export default function AvailabilityModal({
                     onTimeChange={handleStartTimeChange}
                     theme={theme}
                   />
-                  <TimeInputGroup
-                    label="End Time"
-                    time={currentEndTime}
-                    placeholder="5:00 PM"
-                    onTimeChange={handleEndTimeChange}
-                    theme={theme}
-                  />
+                  {!isOpenEnded && (
+                    <TimeInputGroup
+                      label="End Time"
+                      time={currentEndTime}
+                      placeholder="5:00 PM"
+                      onTimeChange={handleEndTimeChange}
+                      theme={theme}
+                    />
+                  )}
+                  <View style={styles.openEndedToggle}>
+                    <TouchableOpacity
+                      style={styles.toggleRow}
+                      onPress={handleOpenEndedToggle}
+                    >
+                      <View
+                        style={[
+                          styles.checkbox,
+                          { borderColor: theme.secondary },
+                          isOpenEnded && { backgroundColor: theme.primary },
+                        ]}
+                      >
+                        {isOpenEnded && (
+                          <Ionicons name="checkmark" size={12} color={theme.primaryForeground} />
+                        )}
+                      </View>
+                      <ThemedText style={styles.toggleLabel}>Leave open ended (no end time)</ThemedText>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )}
             </>
           )}
-        </View>
+        </ScrollView>
 
         <View style={styles.modalActions}>
           <TouchableOpacity
@@ -216,6 +246,9 @@ const styles = StyleSheet.create({
   },
   timeInputs: {
     gap: 16,
+  },
+  openEndedToggle: {
+    marginTop: 8,
   },
   modalActions: {
     flexDirection: 'row',

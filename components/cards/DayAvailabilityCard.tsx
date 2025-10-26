@@ -33,9 +33,14 @@ export default function DayAvailabilityCard({ day, availability, onPress, theme 
         <FontAwesome name="clock-o" size={16} color={theme.success} style={styles.timeIcon} />
         <View style={styles.timeSlots}>
           {availability.timeSlots.map((slot, index) => (
+            slot.end?(
             <Text key={index} style={[styles.timeSlotText, { color: theme.foreground }]}>
               {slot.start} - {slot.end}
+            </Text>):(
+              <Text key={index} style={[styles.timeSlotText, { color: theme.foreground }]}>
+              {slot.start}
             </Text>
+            )
           ))}
         </View>
       </View>

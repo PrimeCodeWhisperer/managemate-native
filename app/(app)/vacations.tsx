@@ -6,8 +6,9 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useVacations } from '@/hooks/useVacations';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useFocusEffect } from '@react-navigation/core';
 import { add, format, parseISO } from 'date-fns';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function VacationsScreen() {
@@ -124,6 +125,11 @@ export default function VacationsScreen() {
       default: return { bg: theme.muted, text: theme.mutedForeground };
     }
   };
+    useFocusEffect(
+      useCallback(() => {
+        refresh();
+      }, [])
+    )
 
   const renderVacation = (v: any) => {
     const range = `${format(parseISO(v.start_date), 'MMM d, yyyy')} - ${format(parseISO(v.end_date), 'MMM d, yyyy')}`;
@@ -304,6 +310,7 @@ export default function VacationsScreen() {
                       <Text style={[styles.confirmButtonText, { color: theme.primaryForeground }]}>Confirm End Date</Text>
                     </TouchableOpacity>
                   )}
+                  
                 </View>
               </View>
             </View>

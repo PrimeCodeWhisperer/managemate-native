@@ -188,15 +188,13 @@ export default function HomeScreen() {
               </View>
 
               <View style={styles.shiftsContainer}>
-                {openLoading ? (
-                  <ActivityIndicator />
-                ) : openError ? (
+                {openError ? (
                   <View style={styles.errorContainer}>
                     <Text style={[styles.errorText, { color: theme.foreground }]}>{openError}</Text>
                     <Button title="Retry" onPress={refresh} />
                   </View>
                 ) : futureOpenShifts.length > 0 ? (
-                  futureOpenShifts.map((shift) => (
+                  futureOpenShifts.filter((_, i) => i < 3).map((shift) => (
                     <ShiftCard key={shift.id} shift={shift} onPickUp={refresh} />
                   ))
                 ) : (

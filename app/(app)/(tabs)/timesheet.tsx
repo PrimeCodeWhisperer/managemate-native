@@ -39,13 +39,18 @@ export default function TimesheetScreen() {
   }, [monthShifts]);
 
   const totalHours = useMemo(() => {
-    return monthShifts.reduce((total, shift) => {
-      if (!shift.end_time) return 0;
+    const totalMinutes = monthShifts.reduce((total, shift) => {
+      if (!shift.end_time) return total;
       const start = parseISO(`2000-01-01T${shift.start_time}`);
       const end = parseISO(`2000-01-01T${shift.end_time}`);
-      const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-      return total + hours;
+      const minutes = (end.getTime() - start.getTime()) / (1000 * 60);
+      return total + minutes;
     }, 0);
+    
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = Math.round(totalMinutes % 60);
+    
+    return { hours, minutes, formatted: minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h` };
   }, [monthShifts]);
 
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -71,10 +76,11 @@ export default function TimesheetScreen() {
     if (!endTime) return '';
     const start = parseISO(`2000-01-01T${startTime}`);
     const end = parseISO(`2000-01-01T${endTime}`);
-    const hours = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60));
-    return `${hours}h`;
+    const totalMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = Math.round(totalMinutes % 60);
+    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
   };
-
   const getShiftStatus = (shift:Shift) => {
     if (!shift.end_time) {
       return { status: 'In Progress', color: theme.info, backgroundColor: theme.infoBackground };
@@ -124,7 +130,7 @@ useFocusEffect(
                 {format(currentDate, 'MMMM yyyy')}
               </ThemedText>
               <ThemedText style={[styles.totalHours, { color: theme.icon }]}>
-                Total: {Math.round(totalHours)} hours
+                Total: {totalHours.formatted}
               </ThemedText>
             </View>
             
@@ -216,7 +222,7 @@ useFocusEffect(
                 </ThemedText>
               </View>
               <ThemedText style={styles.summaryValue}>
-                {Math.round(totalHours)}h
+                {totalHours.formatted}
               </ThemedText>
             </View>
             

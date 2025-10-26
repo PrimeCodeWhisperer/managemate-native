@@ -139,7 +139,6 @@ export default function AvailabilityScreen() {
             })}
           </ScrollView>
 
-          {/* Modern Floating Action Button with proper cross-device positioning */}
           <FloatingActionButton
             onPress={showSaveConfirmation}
             disabled={supabaseLoading || submitting}

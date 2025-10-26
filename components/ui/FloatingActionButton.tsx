@@ -48,14 +48,14 @@ export function FloatingActionButton({
   onPress,
   disabled = false,
   loading = false,
-  icon = 'checkmark',
+  icon = 'checkmark-done-outline',
   backgroundColor = '#007AFF',
   foregroundColor = '#FFFFFF',
   shadowColor = '#000000',
   size = 56,
   style,
 }: FloatingActionButtonProps) {
-  const { bottomGutter } = useNativeTabsBottomGutter({ extra: 16 });
+  const { bottomGutter } = useNativeTabsBottomGutter({ extra: 20 });
 
   const buttonStyles: ViewStyle[] = [
     styles.floatingButton,
