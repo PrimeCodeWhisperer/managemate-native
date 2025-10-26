@@ -7,16 +7,14 @@ import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 interface Props {
   label: string;
   time: string;
-  placeholder: string;
   onTimeChange: (time: string) => void;
   theme: typeof Colors.light;
 }
 
-export default function TimeInputGroup({ label, time, placeholder, onTimeChange, theme }: Props) {
+export default function TimeInputGroup({ label, time, onTimeChange, theme }: Props) {
   const [showPicker, setShowPicker] = useState(false);
 
   const formatTime = (t: string) => {
-    if (!t) return placeholder;
     const [hours, minutes] = t.split(':');
     const hour = parseInt(hours, 10);
     const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -74,7 +72,7 @@ export default function TimeInputGroup({ label, time, placeholder, onTimeChange,
       {showPicker && (
         <>
           <DateTimePicker
-            value={createDateFromTime(time || '09:00')}
+            value={createDateFromTime(time)}
             mode="time"
             is24Hour={false}
             display={Platform.OS === 'ios' ? 'spinner' : 'default'}

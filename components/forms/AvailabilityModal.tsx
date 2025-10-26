@@ -132,7 +132,6 @@ export default function AvailabilityModal({
                   <TimeInputGroup
                     label="Start Time"
                     time={currentStartTime}
-                    placeholder="9:00 AM"
                     onTimeChange={handleStartTimeChange}
                     theme={theme}
                   />
@@ -140,7 +139,6 @@ export default function AvailabilityModal({
                     <TimeInputGroup
                       label="End Time"
                       time={currentEndTime}
-                      placeholder="5:00 PM"
                       onTimeChange={handleEndTimeChange}
                       theme={theme}
                     />
