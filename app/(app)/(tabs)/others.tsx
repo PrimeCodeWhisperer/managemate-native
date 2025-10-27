@@ -3,6 +3,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
+import { useNativeTabsTopGutter } from '@/hooks/uneNativeTabsTopGutter';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNativeTabsBottomGutter } from '@/hooks/useNativeTabsBottomGutter';
 import { useProfile } from '@/hooks/useProfile';
@@ -21,7 +22,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'; // NEW
+import { SafeAreaView } from 'react-native-safe-area-context'; // NEW
 interface MenuItem {
   id: string;
   title: string;
@@ -32,7 +33,7 @@ interface MenuItem {
 }
 
 export default function OthersScreen() {
-  const insets = useSafeAreaInsets(); // NEW
+  const { topGutter } = useNativeTabsTopGutter({ extra: 16 }); // Extra padding for scroll content
 
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
@@ -170,7 +171,7 @@ export default function OthersScreen() {
             style={styles.mainContent}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
-              paddingTop: insets.top,      // NEW: top safe area
+              paddingTop: topGutter,      // NEW: top safe area
               paddingBottom: bottomGutter // NEW: bottom safe area above native tab bar
             }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}

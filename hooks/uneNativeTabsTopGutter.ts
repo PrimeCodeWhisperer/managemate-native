@@ -2,12 +2,11 @@ import { Platform, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDeviceType } from './useDeviceType';
 
-export function useNativeTabsBottomGutter(options?: { extra?: number, iosExtra?: number, androidExtra?: number }) {
-    const { isTablet } = useDeviceType();
-
+export function useNativeTabsTopGutter(options?: { extra?: number, iosExtra?: number, androidExtra?: number }) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
+  const { isTablet } = useDeviceType();
 
   const baseExtra = options?.extra ?? 12;
   const perPlatformExtra = Platform.OS === 'ios' ? (options?.iosExtra ?? baseExtra) : (options?.androidExtra ?? baseExtra);
@@ -18,16 +17,16 @@ export function useNativeTabsBottomGutter(options?: { extra?: number, iosExtra?:
   let base: number;
   
   if (Platform.OS === 'android') {
-    base = Math.max(insets.bottom, androidFallback);
-    if (insets.bottom < 20) base += 16;
+    base = Math.max(insets.top, androidFallback);
+    if (insets.top < 20) base += 16;
   } else {
-    base = insets.bottom;
+    base = insets.top;
   }
 
   const shouldTrustInsetOnly = Platform.OS === 'ios' && (isLandscape || Math.max(width, height) >= 900);
 
-  const bottomGutter = isTablet?0:shouldTrustInsetOnly ? insets.bottom + perPlatformExtra : base + perPlatformExtra;
+  const topGutter = !isTablet ? options?.extra ? options?.extra :0: shouldTrustInsetOnly ? insets.top + perPlatformExtra : base + perPlatformExtra;
 
 
-  return { bottomGutter, insets };
+  return { topGutter, insets };
 }

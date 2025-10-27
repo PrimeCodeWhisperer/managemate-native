@@ -2,6 +2,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
+import { useNativeTabsTopGutter } from '@/hooks/uneNativeTabsTopGutter';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNativeTabsBottomGutter } from '@/hooks/useNativeTabsBottomGutter';
 import { Shift, useShifts } from '@/hooks/useShifts';
@@ -15,7 +16,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function TimesheetScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
-  // Use a smaller extra on iOS, larger on Android to balance both
+  const { topGutter } = useNativeTabsTopGutter({ extra: 16 }); // Extra padding for scroll content
+  
   const { bottomGutter } = useNativeTabsBottomGutter({ extra: 28 });
   
   const { shifts, error, refresh } = useShifts('past');
@@ -114,7 +116,7 @@ useFocusEffect(
 
   return (
     <ErrorBoundary>
-      <SafeAreaView style={[{ flex: 1 }, { backgroundColor: theme.background }]} edges={['top','left','right']}>
+      <SafeAreaView style={[{ flex: 1 }, { backgroundColor: theme.background, paddingTop:topGutter }]} edges={['top','left','right']}>
         <ThemedView> 
           {/* Month Navigator */}
           <View style={styles.monthNavigator}>
@@ -246,7 +248,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 0 },
   errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 8, padding: 16 },
 
-  monthNavigator: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 16 },
+  monthNavigator: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 16 },
   navButton: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   monthInfo: { alignItems: 'center' },
   monthText: { fontSize: 18, fontWeight: '600' },

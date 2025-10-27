@@ -5,6 +5,7 @@ import MonthNavigator from '@/components/navigation/MonthNavigator';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
+import { useNativeTabsTopGutter } from '@/hooks/uneNativeTabsTopGutter';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNativeTabsBottomGutter } from '@/hooks/useNativeTabsBottomGutter';
 import { useShifts } from '@/hooks/useShifts';
@@ -12,11 +13,11 @@ import { useFocusEffect } from '@react-navigation/core';
 import { addMonths, format, formatISO, getDay, getDaysInMonth, isSameDay, parseISO, startOfMonth, subMonths } from 'date-fns';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Button, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function ScheduleScreen() {
-  const insets = useSafeAreaInsets(); // NEW
+  const { topGutter } = useNativeTabsTopGutter({ extra: 16 }); // Extra padding for scroll content
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
   const { shifts, error, refresh } = useShifts('upcoming');
@@ -101,7 +102,7 @@ export default function ScheduleScreen() {
 
   return (
     <ErrorBoundary>
-      <SafeAreaView style={[{ flex: 1 }, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>{/* NEW */}
+      <SafeAreaView style={[{ flex: 1 }, { backgroundColor: theme.background, paddingTop:topGutter }]} edges={['top', 'left', 'right']}>{/* NEW */}
         <ThemedView style={[styles.container]}>
           <ScrollView
             showsVerticalScrollIndicator={false}

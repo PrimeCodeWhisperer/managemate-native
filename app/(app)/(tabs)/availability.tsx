@@ -5,6 +5,7 @@ import AvailabilityModal from '@/components/forms/AvailabilityModal';
 import WeekNavigator from '@/components/navigation/WeekNavigator';
 import { FloatingActionButton } from '@/components/ui/FloatingActionButton';
 import { Colors } from '@/constants/Colors';
+import { useNativeTabsTopGutter } from '@/hooks/uneNativeTabsTopGutter';
 import { DayAvailability, useAvailability } from '@/hooks/useAvailability';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNativeTabsBottomGutter } from '@/hooks/useNativeTabsBottomGutter';
@@ -23,6 +24,7 @@ export default function AvailabilityScreen() {
   const scheme = useColorScheme() ?? 'light';
   const theme = Colors[scheme];
   const { bottomGutter } = useNativeTabsBottomGutter({ extra: 20 }); // Extra padding for scroll content
+  const { topGutter } = useNativeTabsTopGutter({ extra: 20 }); // Extra padding for scroll content
   
   const {
     weekStart,
@@ -105,7 +107,7 @@ export default function AvailabilityScreen() {
 
   return (
     <ErrorBoundary>
-      <SafeAreaView style={[{ flex: 1 }, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'right']}>
+      <SafeAreaView style={[{ flex: 1 }, { backgroundColor: theme.background , paddingTop:topGutter}]} edges={['top', 'bottom', 'right']} >
         <ThemedView style={styles.container}>
           <WeekNavigator
             weekStart={add(weekStart,{weeks:2}) }

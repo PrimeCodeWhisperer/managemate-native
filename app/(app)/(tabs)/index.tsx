@@ -5,6 +5,7 @@ import TimeTrackingCard from '@/components/cards/TimeTrackingCard';
 import VacationCard from '@/components/cards/VacationCard';
 import WelcomeSection from '@/components/common/WelcomeSection';
 import { Colors } from '@/constants/Colors';
+import { useNativeTabsTopGutter } from '@/hooks/uneNativeTabsTopGutter';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNativeTabsBottomGutter } from '@/hooks/useNativeTabsBottomGutter';
 import { useProfile } from '@/hooks/useProfile';
@@ -24,10 +25,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'; // NEW
+import { SafeAreaView } from 'react-native-safe-area-context'; // NEW
 
 export default function HomeScreen() {
-  const insets = useSafeAreaInsets(); // NEW
+  const { topGutter } = useNativeTabsTopGutter({ extra: 16 }); // Extra padding for scroll content
   const { bottomGutter } = useNativeTabsBottomGutter({ extra: 20 }); // Extra padding for scroll content
 
   const [isClockedIn, setIsClockedIn] = useState(false);
@@ -107,10 +108,8 @@ export default function HomeScreen() {
   };
 
   const getDisplayName = () => {
-    if (profile?.first_name && profile?.last_name) return `${profile.first_name} ${profile.last_name}`;
     if (profile?.first_name) return profile.first_name;
-    if (profile?.username) return profile.username;
-    return 'User';
+    return '';
   };
 
   const getFutureOpenShifts = () => {
@@ -159,7 +158,7 @@ export default function HomeScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
               // ensure top/bottom content clears status bar + native tab bar
-              paddingTop: insets.top,
+              paddingTop: topGutter,
               paddingBottom: bottomGutter,
             }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
