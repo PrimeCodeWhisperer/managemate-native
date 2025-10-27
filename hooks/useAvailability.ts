@@ -1,5 +1,5 @@
 import { supabase } from '@/supabase';
-import { addDays, formatISO, startOfWeek } from 'date-fns';
+import { add, addDays, formatISO, startOfWeek } from 'date-fns';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 
@@ -23,7 +23,7 @@ const availabilityCache: Record<string, AvailabilityCacheEntry | undefined> = {}
 
 export function useAvailability() {
   const [weekStart, setWeekStart] = useState<Date>(
-    startOfWeek(new Date(), { weekStartsOn: 1 })
+    add(startOfWeek(new Date(), { weekStartsOn: 1 }),{weeks:2})
   );
   const [map, setMap] = useState<Record<string, boolean>>({});
   const [timeMap, setTimeMap] = useState<Record<string, DayAvailability>>({});

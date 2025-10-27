@@ -10,7 +10,7 @@ import { DayAvailability, useAvailability } from '@/hooks/useAvailability';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNativeTabsBottomGutter } from '@/hooks/useNativeTabsBottomGutter';
 import { useFocusEffect } from '@react-navigation/core';
-import { add, addDays, formatISO } from 'date-fns';
+import { addDays, formatISO } from 'date-fns';
 import React, { useCallback, useState } from 'react';
 import {
   Alert,
@@ -38,7 +38,6 @@ export default function AvailabilityScreen() {
     saveAvailability,
     submitting,
   } = useAvailability();
-
   const [showModal, setShowModal] = useState(false);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [tempAvailability, setTempAvailability] = useState<DayAvailability>({ available: false });
@@ -110,7 +109,7 @@ export default function AvailabilityScreen() {
       <SafeAreaView style={[{ flex: 1 }, { backgroundColor: theme.background , paddingTop:topGutter}]} edges={['top', 'bottom', 'right']} >
         <ThemedView style={styles.container}>
           <WeekNavigator
-            weekStart={add(weekStart,{weeks:2}) }
+            weekStart={weekStart }
             onNavigate={dir => setWeekStart(d => addDays(d, dir === 'prev' ? -7 : 7))}
             theme={theme}
           />
