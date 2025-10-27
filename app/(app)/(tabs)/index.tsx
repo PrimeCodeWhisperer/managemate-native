@@ -133,7 +133,7 @@ export default function HomeScreen() {
   };
   useFocusEffect(
     useCallback(() => {
-      refresh();
+      Promise.all([refreshUpcoming(), refreshOpen(), loadClockStatusFromDatabase()]);
     }, [])
   );
   if (isLoading) {
