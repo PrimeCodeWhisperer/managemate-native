@@ -16,6 +16,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const insets=useSafeAreaInsets()
   const router = useRouter();
 
@@ -33,22 +34,56 @@ export default function LoginScreen() {
     }
   };
 
-  const signInWithGoogle = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: 'your-app-scheme://auth/callback', // Replace with your app's URL scheme
-        },
-      });
-      if (error) throw error;
-    } catch (e: any) {
-      Alert.alert('Google Sign In', e.message ?? 'Google sign in is not configured yet');
-    }
-  };
+  // const signInWithGoogle = async () => {
+  //   try {
+  //     const { error } = await supabase.auth.signInWithOAuth({
+  //       provider: 'google',
+  //       options: {
+  //         redirectTo: 'your-app-scheme://auth/callback', // Replace with your app's URL scheme
+  //       },
+  //     });
+  //     if (error) throw error;
+  //   } catch (e: any) {
+  //     Alert.alert('Google Sign In', e.message ?? 'Google sign in is not configured yet');
+  //   }
+  // };
 
-  const handleForgotPassword = () => {
-    Alert.alert('Forgot Password', 'Password reset functionality will be available soon');
+  const handleForgotPassword = async () => {
+    if (!email) {
+      Alert.alert('Email Required', 'Please enter your email address to reset your password');
+      return;
+    }
+
+    Alert.alert(
+      'Reset Password',
+      `Send password reset instructions to ${email}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Send',
+          onPress: async () => {
+            try {
+              setResetLoading(true);
+              const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${process.env.PUBLIC_APP_URL || "https://managemate.online"}/reset-password`,
+              });
+              
+              if (error) throw error;
+              
+              Alert.alert(
+                'Email Sent',
+                `Password reset instructions have been sent to your email. Please check your inbox. Check your spam if the email doesn't appear`,
+                [{ text: 'OK' }]
+              );
+            } catch (e: any) {
+              Alert.alert('Error', e.message ?? 'Failed to send reset email');
+            } finally {
+              setResetLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleSignUp = () => {
@@ -127,9 +162,13 @@ export default function LoginScreen() {
             </View>
 
             {/* Forgot Password */}
-            <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotPassword}>
+            <TouchableOpacity 
+              onPress={handleForgotPassword} 
+              style={styles.forgotPassword}
+              disabled={resetLoading}
+            >
               <Text style={[styles.forgotPasswordText, { color: theme.foreground }]}>
-                Forgot Password?
+                {resetLoading ? 'Sending...' : 'Forgot Password?'}
               </Text>
             </TouchableOpacity>
 
@@ -168,7 +207,7 @@ export default function LoginScreen() {
           </View>
 
           {/* Sign Up Link */}
-          <View style={styles.signUpSection}>
+          {/* <View style={styles.signUpSection}>
             <Text style={[styles.signUpText, { color: theme.icon }]}> 
               {"Don't have an account? "}
               <Text
@@ -178,7 +217,7 @@ export default function LoginScreen() {
                 Sign Up
               </Text>
             </Text>
-          </View>
+          </View> */}
 
         </ThemedView>
       </ScrollView>
